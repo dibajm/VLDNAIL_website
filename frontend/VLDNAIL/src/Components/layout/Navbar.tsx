@@ -34,6 +34,13 @@ function Navbar() {
           >
             Gallery
           </Link>
+
+          <Link
+            to="/press-ons"
+            className="text-sm text-[#D37E90] transition hover:text-[#b85f72]"
+          >
+            Press-Ons
+          </Link>
         </div>
 
         {/* Logo */}

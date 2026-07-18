@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Crop Tier Images</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: sans-serif; background: #FAEDEF; color: #2f2024; padding: 40px; }
+  h1 { font-size: 22px; margin-bottom: 6px; }
+  p  { font-size: 13px; color: #6e565d; margin-bottom: 24px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .zone {
+    border: 2px dashed #D37E90; border-radius: 16px;
+    background: white; padding: 24px; text-align: center;
+    cursor: pointer; transition: background 0.2s;
+    min-height: 160px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px;
+  }
+  .zone.ready { background: #F5DDE1; border-style: solid; }
+  .zone .label { font-size: 13px; font-weight: 600; color: #D37E90; }
+  .zone .sub   { font-size: 11px; color: #9c7580; }
+  .zone img    { width: 100%; max-height: 120px; object-fit: cover; border-radius: 8px; }
+  .zone input  { display: none; }
+  #btn {
+    margin-top: 28px; background: #D37E90; color: white;
+    border: none; border-radius: 8px; padding: 12px 32px;
+    font-size: 14px; cursor: pointer; opacity: 0.4; pointer-events: none;
+  }
+  #btn.active { opacity: 1; pointer-events: auto; }
+  #log { margin-top: 16px; font-size: 12px; color: #6e565d; white-space: pre; }
+</style>
+</head>
+<body>
+<h1>Tier Image Cropper</h1>
+<p>Drop (or click) each tier collage image below. Once all 4 are loaded, click Crop & Download to get 24 individual JPGs.</p>
+
+<div class="grid" id="grid"></div>
+<div style="margin-top:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+  <button id="btn" onclick="cropAll()">Crop & Download All 24 →</button>
+  <button id="prevBtn" style="background:#F5DDE1;color:#D37E90;border:none;border-radius:8px;padding:12px 20px;font-size:14px;cursor:pointer;display:none" onclick="preview()">Preview Crops First</button>
+</div>
+<div id="previewArea" style="margin-top:20px;display:none">
+  <p style="margin-bottom:10px;font-size:12px;color:#6e565d">Preview of Tier 1 crops (check alignment before downloading all 24):</p>
+  <div id="previewGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:700px"></div>
+</div>
+<div id="log"></div>
+<canvas id="cv" style="display:none"></canvas>
+<canvas id="pv" style="display:none"></canvas>
+
+<script>
+const TIERS = [
+  { label: 'Tier 1', range: '+$10–$15' },
+  { label: 'Tier 2', range: '+$20–$25' },
+  { label: 'Tier 3', range: '+$30–$35' },
+  { label: 'Tier 4', range: '+$40–$50' },
+];
+
+// Crop boxes as fractions of the image size.
+// Each collage = 3 columns × 2 rows of photos on a pink background.
+// Tweak these if crops look off.
+// Clean collage images (no title text) — 3×2 grid nearly fills the whole image
+const CROPS = [
+  // row 1
+  { cx: 0.018, cy: 0.018, cw: 0.310, ch: 0.464 },
+  { cx: 0.345, cy: 0.018, cw: 0.310, ch: 0.464 },
+  { cx: 0.672, cy: 0.018, cw: 0.310, ch: 0.464 },
+  // row 2
+  { cx: 0.018, cy: 0.518, cw: 0.310, ch: 0.464 },
+  { cx: 0.345, cy: 0.518, cw: 0.310, ch: 0.464 },
+  { cx: 0.672, cy: 0.518, cw: 0.310, ch: 0.464 },
+];
+
+const files = [null, null, null, null]; // index = tier-1
+const imgs  = [null, null, null, null];
+const grid  = document.getElementById('grid');
+const btn   = document.getElementById('btn');
+const log   = document.getElementById('log');
+const cv    = document.getElementById('cv');
+const ctx   = cv.getContext('2d');
+
+TIERS.forEach((tier, i) => {
+  const zone = document.createElement('div');
+  zone.className = 'zone';
+  zone.innerHTML = `
+    <div class="label">${tier.label}</div>
+    <div class="sub">${tier.range}</div>
+    <div class="sub" id="name${i}">Click or drop image here</div>
+    <input type="file" accept="image/*" id="file${i}" />
+  `;
+  zone.addEventListener('click', () => zone.querySelector('input').click());
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.background='#F5DDE1'; });
+  zone.addEventListener('dragleave', () => { if (!files[i]) zone.style.background='white'; });
+  zone.addEventListener('drop', e => { e.preventDefault(); loadFile(i, e.dataTransfer.files[0], zone); });
+  zone.querySelector('input').addEventListener('change', e => loadFile(i, e.target.files[0], zone));
+  grid.appendChild(zone);
+});
+
+function loadFile(i, file, zone) {
+  if (!file) return;
+  files[i] = file;
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = () => {
+    imgs[i] = img;
+    zone.querySelector(`#name${i}`).textContent = file.name;
+    zone.classList.add('ready');
+    let thumb = zone.querySelector('img');
+    if (!thumb) { thumb = document.createElement('img'); zone.appendChild(thumb); }
+    thumb.src = url;
+    if (files.every(Boolean)) {
+      btn.classList.add('active');
+      document.getElementById('prevBtn').style.display = 'block';
+    }
+  };
+  img.src = url;
+}
+
+function preview() {
+  const img = imgs[0];
+  if (!img) return;
+  const pv = document.getElementById('pv');
+  const pc = pv.getContext('2d');
+  const pg = document.getElementById('previewGrid');
+  pg.innerHTML = '';
+  document.getElementById('previewArea').style.display = 'block';
+  CROPS.forEach((c, idx) => {
+    const sx = Math.round(img.naturalWidth  * c.cx);
+    const sy = Math.round(img.naturalHeight * c.cy);
+    const sw = Math.round(img.naturalWidth  * c.cw);
+    const sh = Math.round(img.naturalHeight * c.ch);
+    pv.width = sw; pv.height = sh;
+    pc.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+    const thumb = document.createElement('img');
+    thumb.src = pv.toDataURL();
+    thumb.style.cssText = 'width:100%;border-radius:8px';
+    const label = document.createElement('div');
+    label.style.cssText = 'font-size:11px;color:#6e565d;text-align:center;margin-top:4px';
+    label.textContent = `tier1-${idx+1}`;
+    const wrap = document.createElement('div');
+    wrap.appendChild(thumb);
+    wrap.appendChild(label);
+    pg.appendChild(wrap);
+  });
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function cropAll() {
+  log.textContent = '';
+  for (let t = 0; t < 4; t++) {
+    const img = imgs[t];
+    if (!img) { log.textContent += `⚠ Tier ${t+1} missing\n`; continue; }
+    for (let c = 0; c < CROPS.length; c++) {
+      const { cx, cy, cw, ch } = CROPS[c];
+      const sx = Math.round(img.naturalWidth  * cx);
+      const sy = Math.round(img.naturalHeight * cy);
+      const sw = Math.round(img.naturalWidth  * cw);
+      const sh = Math.round(img.naturalHeight * ch);
+      cv.width  = sw;
+      cv.height = sh;
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+      const name = `tier${t+1}-${c+1}.jpg`;
+      await download(name);
+      log.textContent += `✓ ${name}\n`;
+      await sleep(120); // avoid browser throttling
+    }
+  }
+  log.textContent += '\n✅ Done! Move the downloaded files into:\nfrontend/VLDNAIL/src/assets/gallery/';
+}
+
+function download(filename) {
+  return new Promise(resolve => {
+    cv.toBlob(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      setTimeout(resolve, 80);
+    }, 'image/jpeg', 0.92);
+  });
+}
+</script>
+</body>
+</html>

@@ -3,8 +3,41 @@ import Navbar from "../Components/layout/Navbar";
 import Footer from "../Components/layout/Footer";
 import Button from "../Components/ui/Button";
 
-// ─── Swap these imports with real images once added to src/assets/gallery/ ───
-// import tier1_1 from "../assets/gallery/tier1-1.jpg"; etc.
+import shapeSquare   from "../assets/gallery/shapes/Square.png";
+import shapeSquoval  from "../assets/gallery/shapes/Squoval.png";
+import shapeRound    from "../assets/gallery/shapes/Round.png";
+import shapeOval     from "../assets/gallery/shapes/Oval.png";
+import shapeAlmond   from "../assets/gallery/shapes/Almond.png";
+import shapeCoffin   from "../assets/gallery/shapes/Coffin.png";
+import shapeStiletto from "../assets/gallery/shapes/Stilleto.png";
+
+import t1_1 from "../assets/gallery/tier1-1.jpg";
+import t1_2 from "../assets/gallery/tier1-2.jpg";
+import t1_3 from "../assets/gallery/tier1-3.jpg";
+import t1_4 from "../assets/gallery/tier1-4.jpg";
+import t1_5 from "../assets/gallery/tier1-5.jpg";
+import t1_6 from "../assets/gallery/tier1-6.jpg";
+
+import t2_1 from "../assets/gallery/tier2-1.jpg";
+import t2_2 from "../assets/gallery/tier2-2.jpg";
+import t2_3 from "../assets/gallery/tier2-3.jpg";
+import t2_4 from "../assets/gallery/tier2-4.jpg";
+import t2_5 from "../assets/gallery/tier2-5.jpg";
+import t2_6 from "../assets/gallery/tier2-6.jpg";
+
+import t3_1 from "../assets/gallery/tier3-1.jpg";
+import t3_2 from "../assets/gallery/tier3-2.jpg";
+import t3_3 from "../assets/gallery/tier3-3.jpg";
+import t3_4 from "../assets/gallery/tier3-4.jpg";
+import t3_5 from "../assets/gallery/tier3-5.jpg";
+import t3_6 from "../assets/gallery/tier3-6.jpg";
+
+import t4_1 from "../assets/gallery/tier4-1.jpg";
+import t4_2 from "../assets/gallery/tier4-2.jpg";
+import t4_3 from "../assets/gallery/tier4-3.jpg";
+import t4_4 from "../assets/gallery/tier4-4.jpg";
+import t4_5 from "../assets/gallery/tier4-5.jpg";
+import t4_6 from "../assets/gallery/tier4-6.jpg";
 
 const filterTabs = [
   "All",
@@ -24,92 +57,36 @@ const designTiers = [
     label: "Tier 1",
     range: "+$10–$15",
     desc: "French, Solid Colour, Chrome, Cateye, Simple Aura, Basic Nail Art",
-    count: 6,
+    photos: [t1_1, t1_2, t1_3, t1_4, t1_5, t1_6],
   },
   {
     label: "Tier 2",
     range: "+$20–$25",
     desc: "French Designs, Blooming Gel, Plaid, Rhinestone Accents, Medium Designs",
-    count: 6,
+    photos: [t2_1, t2_2, t2_3, t2_4, t2_5, t2_6],
   },
   {
     label: "Tier 3",
     range: "+$30–$35",
     desc: "Multi-Art, Layered Designs, Detailed Designs",
-    count: 6,
+    photos: [t3_1, t3_2, t3_3, t3_4, t3_5, t3_6],
   },
   {
     label: "Tier 4",
     range: "+$40–$50",
     desc: "Complex Nail Art, Full Bling, 3D Characters",
-    count: 6,
+    photos: [t4_1, t4_2, t4_3, t4_4, t4_5, t4_6],
   },
 ];
 
 const nailShapes = [
-  {
-    name: "Square",
-    svg: (
-      <svg width="28" height="40" viewBox="0 0 28 40" fill="none">
-        <rect x="4" y="4" width="20" height="32" rx="1.5" stroke="#D37E90" strokeWidth="1.5" fill="none" />
-        <line x1="4" y1="10" x2="24" y2="10" stroke="#D37E90" strokeWidth="1" strokeDasharray="2 2" />
-      </svg>
-    ),
-  },
-  {
-    name: "Squoval",
-    svg: (
-      <svg width="28" height="40" viewBox="0 0 28 40" fill="none">
-        <path d="M4 6 Q4 4 6 4 L22 4 Q24 4 24 6 L24 34 Q24 36 22 36 L6 36 Q4 36 4 34 Z" stroke="#D37E90" strokeWidth="1.5" fill="none" />
-        <line x1="4" y1="11" x2="24" y2="11" stroke="#D37E90" strokeWidth="1" strokeDasharray="2 2" />
-      </svg>
-    ),
-  },
-  {
-    name: "Round",
-    svg: (
-      <svg width="28" height="40" viewBox="0 0 28 40" fill="none">
-        <path d="M4 10 L4 34 Q4 36 6 36 L22 36 Q24 36 24 34 L24 10 Q24 4 14 4 Q4 4 4 10 Z" stroke="#D37E90" strokeWidth="1.5" fill="none" />
-        <line x1="4" y1="14" x2="24" y2="14" stroke="#D37E90" strokeWidth="1" strokeDasharray="2 2" />
-      </svg>
-    ),
-  },
-  {
-    name: "Oval",
-    svg: (
-      <svg width="28" height="40" viewBox="0 0 28 40" fill="none">
-        <path d="M4 20 Q4 4 14 4 Q24 4 24 20 L24 30 Q24 36 14 36 Q4 36 4 30 Z" stroke="#D37E90" strokeWidth="1.5" fill="none" />
-        <line x1="4" y1="18" x2="24" y2="18" stroke="#D37E90" strokeWidth="1" strokeDasharray="2 2" />
-      </svg>
-    ),
-  },
-  {
-    name: "Almond",
-    svg: (
-      <svg width="28" height="40" viewBox="0 0 28 40" fill="none">
-        <path d="M4 22 Q4 4 14 4 Q24 4 24 22 Q24 34 14 36 Q4 34 4 22 Z" stroke="#D37E90" strokeWidth="1.5" fill="none" />
-        <line x1="4" y1="19" x2="24" y2="19" stroke="#D37E90" strokeWidth="1" strokeDasharray="2 2" />
-      </svg>
-    ),
-  },
-  {
-    name: "Coffin",
-    svg: (
-      <svg width="28" height="40" viewBox="0 0 28 40" fill="none">
-        <path d="M4 4 L24 4 L20 32 L8 32 Z" stroke="#D37E90" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
-        <line x1="4" y1="10" x2="24" y2="10" stroke="#D37E90" strokeWidth="1" strokeDasharray="2 2" />
-      </svg>
-    ),
-  },
-  {
-    name: "Stiletto",
-    svg: (
-      <svg width="28" height="40" viewBox="0 0 28 40" fill="none">
-        <path d="M4 4 L24 4 L14 36 Z" stroke="#D37E90" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
-        <line x1="4" y1="10" x2="24" y2="10" stroke="#D37E90" strokeWidth="1" strokeDasharray="2 2" />
-      </svg>
-    ),
-  },
+  { name: "Square",   img: shapeSquare },
+  { name: "Squoval",  img: shapeSquoval },
+  { name: "Round",    img: shapeRound },
+  { name: "Oval",     img: shapeOval },
+  { name: "Almond",   img: shapeAlmond },
+  { name: "Coffin",   img: shapeCoffin },
+  { name: "Stiletto", img: shapeStiletto },
 ];
 
 function PlaceholderImg({ className = "" }: { className?: string }) {
@@ -169,9 +146,29 @@ function SectionHeader({
   );
 }
 
+const tabToId: Record<string, string> = {
+  "All": "",
+  "Acrylic": "section-acrylic",
+  "Gel / BIAB & Shellac": "section-gel-shellac",
+  "Tier 1": "section-tier-1",
+  "Tier 2": "section-tier-2",
+  "Tier 3": "section-tier-3",
+  "Tier 4": "section-tier-4",
+  "Shapes": "section-shapes",
+};
+
 export default function Gallery() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [acrylicSubTab, setAcrylicSubTab] = useState("Short");
+
+  function handleTabClick(tab: string) {
+    setActiveFilter(tab);
+    if (tab === "All") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      document.getElementById(tabToId[tab])?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
 
   return (
     <main className="min-h-screen bg-[#FAEDEF] text-[#2f2024]">
@@ -197,7 +194,7 @@ export default function Gallery() {
           {filterTabs.map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveFilter(tab)}
+              onClick={() => handleTabClick(tab)}
               className={`whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-medium transition ${
                 activeFilter === tab
                   ? "bg-[#D37E90] text-white"
@@ -212,7 +209,7 @@ export default function Gallery() {
 
       <div className="mx-auto max-w-7xl space-y-14 px-6 py-10 md:px-16">
         {/* Acrylic Nails */}
-        <section>
+        <section id="section-acrylic">
           <SectionHeader
             title="Acrylic Nails"
             subTabs={acrylicSubTabs}
@@ -227,7 +224,7 @@ export default function Gallery() {
         </section>
 
         {/* Gel / BIAB & Shellac — combined */}
-        <section>
+        <section id="section-gel-shellac">
           <SectionHeader title="Gel / BIAB & Shellac" />
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -245,7 +242,7 @@ export default function Gallery() {
 
           <div className="space-y-10">
             {designTiers.map((tier) => (
-              <div key={tier.label}>
+              <div key={tier.label} id={`section-tier-${tier.label.split(" ")[1]}`}>
                 {/* Tier header */}
                 <div className="mb-4 flex flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-4">
                   <div className="flex items-center gap-3">
@@ -259,10 +256,14 @@ export default function Gallery() {
                   <p className="text-xs text-[#7c6269]">{tier.desc}</p>
                 </div>
 
-                {/* 3×2 photo grid — replace PlaceholderImg with <img> once photos are added */}
                 <div className="grid grid-cols-3 gap-3">
-                  {Array.from({ length: tier.count }).map((_, i) => (
-                    <PlaceholderImg key={i} className="aspect-square" />
+                  {tier.photos.map((src, i) => (
+                    <img
+                      key={i}
+                      src={src}
+                      alt={`${tier.label} example ${i + 1}`}
+                      className="aspect-square w-full rounded-xl object-cover"
+                    />
                   ))}
                 </div>
               </div>
@@ -271,7 +272,7 @@ export default function Gallery() {
         </section>
 
         {/* Nail Shapes — horizontal scroll */}
-        <section>
+        <section id="section-shapes">
           <div className="mb-6 flex items-center gap-2">
             <h2 className="font-serif text-2xl text-[#2f2024]">Nail Shapes</h2>
             <span className="text-[#D37E90]">✦</span>
@@ -285,10 +286,13 @@ export default function Gallery() {
                 className="flex shrink-0 flex-col items-center gap-3 rounded-2xl border border-[#F5DDE1] bg-white/70 p-4"
                 style={{ width: 130 }}
               >
-                {/* Nail photo placeholder — swap for <img> once photos are added */}
-                <div className="w-full overflow-hidden rounded-xl bg-gradient-to-b from-[#F5DDE1] to-[#ECC8CE]" style={{ height: 170 }} />
+                <img
+                  src={shape.img}
+                  alt={shape.name}
+                  className="w-full rounded-xl object-cover"
+                  style={{ height: 170 }}
+                />
                 <p className="text-sm font-medium text-[#2f2024]">{shape.name}</p>
-                {shape.svg}
               </div>
             ))}
           </div>

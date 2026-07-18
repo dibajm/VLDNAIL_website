@@ -242,7 +242,7 @@ export default function ServiceSelection({ booking, onUpdate, onNext }: Props) {
 
         <p className="text-center text-sm text-[#7c6269]">
           Not sure what to choose?{" "}
-          <a href="mailto:hello@vldnail.com" className="text-[#D37E90] underline">
+          <a href="mailto:valeriya.lazar.nails@gmail.com" className="text-[#D37E90] underline">
             Contact us
           </a>{" "}
           and we'll help you pick the perfect service.
