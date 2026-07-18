@@ -5,10 +5,13 @@ import Booking from "./pages/Booking";
 import Services from "./pages/Services";
 import About from "./pages/About";
 import PressOns from "./pages/PressOns";
+import ScrollToTop from "./Components/ScrollToTop";
 
 function App() {
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/gallery" element={<Gallery />} />
       <Route path="/booking" element={<Booking />} />
@@ -16,6 +19,7 @@ function App() {
       <Route path="/about" element={<About />} />
       <Route path="/press-ons" element={<PressOns />} />
     </Routes>
+    </>
   );
 }
 

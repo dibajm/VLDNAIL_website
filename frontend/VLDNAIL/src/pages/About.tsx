@@ -117,13 +117,12 @@ export default function About() {
           </div>
 
           {/* Right: photo */}
-          <div className="flex items-start justify-center lg:justify-end">
-            <div className="relative w-full max-w-sm overflow-hidden rounded-3xl shadow-lg">
+          <div className="flex items-stretch">
+            <div className="w-full overflow-hidden rounded-3xl shadow-lg">
               <img
                 src={heroImg}
                 alt="Valeriya's nail studio"
                 className="h-full w-full object-cover"
-                style={{ maxHeight: 520 }}
               />
             </div>
           </div>

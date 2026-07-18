@@ -41,16 +41,12 @@ import t4_6 from "../assets/gallery/tier4-6.jpg";
 
 const filterTabs = [
   "All",
-  "Acrylic",
-  "Gel / BIAB & Shellac",
   "Tier 1",
   "Tier 2",
   "Tier 3",
   "Tier 4",
   "Shapes",
 ];
-
-const acrylicSubTabs = ["Short", "Medium", "Long"];
 
 const designTiers = [
   {
@@ -89,67 +85,9 @@ const nailShapes = [
   { name: "Stiletto", img: shapeStiletto },
 ];
 
-function PlaceholderImg({ className = "" }: { className?: string }) {
-  return (
-    <div className={`rounded-xl bg-gradient-to-br from-[#F5DDE1] to-[#ECC8CE] ${className}`} />
-  );
-}
-
-function SectionHeader({
-  title,
-  badge,
-  subTabs,
-  activeSubTab,
-  onSubTabChange,
-  showViewAll = true,
-}: {
-  title: string;
-  badge?: string;
-  subTabs?: string[];
-  activeSubTab?: string;
-  onSubTabChange?: (t: string) => void;
-  showViewAll?: boolean;
-}) {
-  return (
-    <div className="mb-4 flex items-center justify-between">
-      <div className="flex flex-wrap items-center gap-3">
-        <h2 className="font-serif text-xl text-[#2f2024]">{title}</h2>
-        {badge && (
-          <span className="rounded-full bg-[#F5DDE1] px-3 py-0.5 text-xs font-semibold text-[#D37E90]">
-            {badge}
-          </span>
-        )}
-        {subTabs && (
-          <div className="flex gap-3">
-            {subTabs.map((t) => (
-              <button
-                key={t}
-                onClick={() => onSubTabChange?.(t)}
-                className={`text-xs transition ${
-                  activeSubTab === t
-                    ? "text-[#D37E90] underline underline-offset-4"
-                    : "text-[#6e565d] hover:text-[#D37E90]"
-                }`}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-      {showViewAll && (
-        <button className="shrink-0 text-xs text-[#D37E90] hover:underline">
-          View all →
-        </button>
-      )}
-    </div>
-  );
-}
 
 const tabToId: Record<string, string> = {
   "All": "",
-  "Acrylic": "section-acrylic",
-  "Gel / BIAB & Shellac": "section-gel-shellac",
   "Tier 1": "section-tier-1",
   "Tier 2": "section-tier-2",
   "Tier 3": "section-tier-3",
@@ -159,7 +97,6 @@ const tabToId: Record<string, string> = {
 
 export default function Gallery() {
   const [activeFilter, setActiveFilter] = useState("All");
-  const [acrylicSubTab, setAcrylicSubTab] = useState("Short");
 
   function handleTabClick(tab: string) {
     setActiveFilter(tab);
@@ -208,31 +145,6 @@ export default function Gallery() {
       </div>
 
       <div className="mx-auto max-w-7xl space-y-14 px-6 py-10 md:px-16">
-        {/* Acrylic Nails */}
-        <section id="section-acrylic">
-          <SectionHeader
-            title="Acrylic Nails"
-            subTabs={acrylicSubTabs}
-            activeSubTab={acrylicSubTab}
-            onSubTabChange={setAcrylicSubTab}
-          />
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <PlaceholderImg key={i} className="aspect-square" />
-            ))}
-          </div>
-        </section>
-
-        {/* Gel / BIAB & Shellac — combined */}
-        <section id="section-gel-shellac">
-          <SectionHeader title="Gel / BIAB & Shellac" />
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <PlaceholderImg key={i} className="aspect-square" />
-            ))}
-          </div>
-        </section>
-
         {/* Designs — Tier 1–4 */}
         <section>
           <div className="mb-6 flex items-center gap-2">
