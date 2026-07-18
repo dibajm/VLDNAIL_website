@@ -33,14 +33,15 @@ export default function Services() {
             <span className="text-[#D37E90]">✦</span>
           </div>
 
-          {/* Column headers */}
-          <div className="mb-3 grid grid-cols-4 gap-4 px-4 text-xs font-semibold uppercase tracking-widest text-[#b99aa2]">
+          {/* Column headers — desktop only */}
+          <div className="mb-3 hidden grid-cols-4 gap-4 px-4 text-xs font-semibold uppercase tracking-widest text-[#b99aa2] sm:grid">
             <span className="col-span-2">Service</span>
             <span className="text-center">New Set</span>
             <span className="text-center">Fill</span>
           </div>
 
-          <div className="divide-y divide-[#F5DDE1] rounded-2xl border border-[#F5DDE1] bg-white/60">
+          {/* Desktop table */}
+          <div className="hidden divide-y divide-[#F5DDE1] rounded-2xl border border-[#F5DDE1] bg-white/60 sm:block">
             {services.map((svc) => (
               <div
                 key={svc.name}
@@ -56,6 +57,33 @@ export default function Services() {
                 <p className="text-center text-sm font-semibold text-[#2f2024]">
                   {svc.fillPrice != null ? `$${svc.fillPrice}` : "—"}
                 </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Mobile cards */}
+          <div className="space-y-3 sm:hidden">
+            {services.map((svc) => (
+              <div
+                key={svc.name}
+                className="rounded-2xl border border-[#F5DDE1] bg-white/60 px-5 py-4"
+              >
+                <p className="font-medium text-[#2f2024]">{svc.name}</p>
+                <p className="mt-0.5 text-xs text-[#7c6269]">{svc.description}</p>
+                <div className="mt-3 flex gap-6 text-sm">
+                  <div>
+                    <p className="text-xs text-[#b99aa2]">New Set</p>
+                    <p className="font-semibold text-[#2f2024]">
+                      {svc.newSetPrice != null ? `$${svc.newSetPrice}` : "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-[#b99aa2]">Fill</p>
+                    <p className="font-semibold text-[#2f2024]">
+                      {svc.fillPrice != null ? `$${svc.fillPrice}` : "—"}
+                    </p>
+                  </div>
+                </div>
               </div>
             ))}
           </div>

@@ -4,7 +4,6 @@ import Button from "../Components/ui/Button";
 import Card from "../Components/ui/Card";
 import SectionTitle from "../Components/ui/SectionTitle";
 
-import heroImg from "../assets/hero.png";
 import pressOnImg from "../assets/presson.png";
 
 function Home() {
@@ -36,40 +35,30 @@ function Home() {
       <Navbar />
 
       <section className="bg-[#F5DDE1]">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-10 px-6 py-8 md:flex-row md:px-16">
-          <div className="max-w-xl text-center md:text-left">
-            <p className="mb-4 font-serif text-sm uppercase tracking-[0.35em] text-[#D37E90]">
-              Elevate Your Style
-            </p>
+        <div className="mx-auto flex max-w-7xl flex-col items-center px-6 py-12 text-center md:px-16">
+          <p className="mb-4 font-serif text-sm uppercase tracking-[0.35em] text-[#D37E90]">
+            Elevate Your Style
+          </p>
 
-            <h1 className="mb-4 font-serif text-6xl tracking-widest text-white drop-shadow-md md:text-7xl">
-              VLDNAIL
-            </h1>
+          <h1 className="mb-4 font-serif text-6xl tracking-widest text-white drop-shadow-md md:text-7xl">
+            VLDNAIL
+          </h1>
 
-            <div className="mx-auto mb-5 h-[2px] w-56 bg-[#D37E90] md:mx-0" />
+          <div className="mb-5 h-[2px] w-56 bg-[#D37E90]" />
 
-            <h2 className="mb-3 text-2xl font-medium">
-              Beauty in every detail
-            </h2>
+          <h2 className="mb-3 text-2xl font-medium">
+            Beauty in every detail
+          </h2>
 
-            <p className="mx-auto max-w-md text-sm leading-7 text-[#5f4a50] md:mx-0">
-              Premium nail services offering acrylic and gel extensions,
-              detailed nail art, and custom press-on nails made to fit your
-              unique style.
-            </p>
+          <p className="max-w-md text-sm leading-7 text-[#5f4a50]">
+            Premium nail services offering acrylic and gel extensions,
+            detailed nail art, and custom press-on nails made to fit your
+            unique style.
+          </p>
 
-            <Button to="/booking" className="mt-8">
-              Book your appointment now →
-            </Button>
-          </div>
-
-          <div className="flex justify-center">
-            <img
-              src={heroImg}
-              alt="Luxury nail design"
-              className="w-full max-w-xs object-contain md:max-w-sm"
-            />
-          </div>
+          <Button to="/booking" className="mt-8">
+            Book your appointment now →
+          </Button>
         </div>
       </section>
 
