@@ -1,10 +1,25 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import logo from "../../assets/logo.png";
 
 function Navbar() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    function onScroll() {
+      setScrolled(window.scrollY > 10);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <header className="border-b border-[#F5DDE1] bg-[#FAEDEF]">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-8 py-4">
+    <header
+      className={`sticky top-0 z-50 border-b border-[#F5DDE1] bg-[#FAEDEF] transition-shadow duration-300 ${
+        scrolled ? "shadow-md" : "shadow-none"
+      }`}
+    >
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:px-16">
         {/* Left Navigation */}
         <div className="hidden items-center gap-8 md:flex">
           <Link

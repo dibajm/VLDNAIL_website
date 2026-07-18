@@ -1,8 +1,8 @@
-import Navbar from "../components/layout/Navbar";
-import Footer from "../components/layout/Footer";
-import Button from "../components/ui/Button";
-import Card from "../components/ui/Card";
-import SectionTitle from "../components/ui/SectionTitle";
+import Navbar from "../Components/layout/Navbar";
+import Footer from "../Components/layout/Footer";
+import Button from "../Components/ui/Button";
+import Card from "../Components/ui/Card";
+import SectionTitle from "../Components/ui/SectionTitle";
 
 import heroImg from "../assets/hero.png";
 import pressOnImg from "../assets/presson.png";
@@ -36,7 +36,7 @@ function Home() {
       <Navbar />
 
       <section className="bg-[#F5DDE1]">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-10 px-6 py-14 md:flex-row md:px-10 lg:px-16">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-10 px-6 py-8 md:flex-row md:px-16">
           <div className="max-w-xl text-center md:text-left">
             <p className="mb-4 font-serif text-sm uppercase tracking-[0.35em] text-[#D37E90]">
               Elevate Your Style
@@ -67,13 +67,13 @@ function Home() {
             <img
               src={heroImg}
               alt="Luxury nail design"
-              className="w-full max-w-md object-contain md:max-w-lg"
+              className="w-full max-w-xs object-contain md:max-w-sm"
             />
           </div>
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl grid-cols-1 gap-5 px-6 py-6 md:grid-cols-4 md:px-10 lg:px-16">
+      <section className="mx-auto grid max-w-7xl grid-cols-1 gap-5 px-6 py-10 md:grid-cols-4 md:px-16">
         {features.map((item) => (
           <Card key={item.title} className="text-center">
             <div className="mb-3 text-3xl text-[#D37E90]">{item.icon}</div>
@@ -83,7 +83,7 @@ function Home() {
         ))}
       </section>
 
-      <section className="mx-auto my-10 max-w-6xl px-6 md:px-10">
+      <section className="mx-auto max-w-7xl px-6 pb-16 md:px-16">
         <Card variant="light" className="rounded-2xl p-8">
           <SectionTitle
             eyebrow="Custom handmade nails"
