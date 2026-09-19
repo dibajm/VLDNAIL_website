@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import type { BookingState, ServiceName, ServiceType } from "../booking.types";
 import { services } from "../data/pricing";
 import { hours, bookingPolicies } from "../data/policies";
@@ -10,7 +11,7 @@ type Props = {
 };
 
 function NailIcon({ name }: { name: ServiceName }) {
-  const svgs: Record<ServiceName, JSX.Element> = {
+  const svgs: Record<ServiceName, ReactElement> = {
     Shellac: (
       <svg width="28" height="36" viewBox="0 0 28 36" fill="none">
         <rect x="10" y="2" width="8" height="10" rx="2" stroke="#D37E90" strokeWidth="1.5" />
@@ -21,6 +22,11 @@ function NailIcon({ name }: { name: ServiceName }) {
       <svg width="22" height="36" viewBox="0 0 22 36" fill="none">
         <path d="M3 4 Q3 2 11 2 Q19 2 19 4 L19 28 Q19 34 11 34 Q3 34 3 28 Z" stroke="#D37E90" strokeWidth="1.5" fill="none" />
         <path d="M7 10 Q11 8 15 10" stroke="#D37E90" strokeWidth="1" strokeLinecap="round" />
+      </svg>
+    ),
+    "Gel X": (
+      <svg width="24" height="38" viewBox="0 0 24 38" fill="none">
+        <path d="M3 4 Q3 2 12 2 Q21 2 21 4 L20 28 Q20 36 12 36 Q4 36 4 28 Z" stroke="#D37E90" strokeWidth="1.5" fill="none" />
       </svg>
     ),
     Short: (
@@ -57,12 +63,14 @@ export default function ServiceSelection({ booking, onUpdate, onNext }: Props) {
   const { serviceType, service } = booking;
 
   function selectService(name: ServiceName) {
-    onUpdate({ service: name });
-    onNext();
+    const fixedLength = ["Short", "Medium", "Long", "XL"].includes(name)
+      ? name
+      : null;
+    onUpdate({ service: name, nailLength: fixedLength });
   }
 
   function setType(type: ServiceType) {
-    onUpdate({ serviceType: type, service: null });
+    onUpdate({ serviceType: type, service: null, nailLength: null, nailShape: null });
   }
 
   const visibleServices = services.filter((s) => {
@@ -135,7 +143,7 @@ export default function ServiceSelection({ booking, onUpdate, onNext }: Props) {
             <div className="space-y-4">
               {bookingPolicies.map((p) => (
                 <div key={p.title} className="flex gap-3">
-                  <span className="mt-0.5 text-[#D37E90]">◇</span>
+                  <span className="mt-0.5 text-black">●</span>
                   <div>
                     <p className="text-xs font-semibold text-[#2f2024]">
                       {p.title}
@@ -185,8 +193,8 @@ export default function ServiceSelection({ booking, onUpdate, onNext }: Props) {
 
         {serviceType === "fill" && (
           <p className="text-xs text-[#D37E90]">
-            Gel-x starting $55 for short, +$5 per next length. +5% GST on all
-            cash and debit services.
+            Gel X starts at $55 and is priced as a standalone service. +5% GST
+            applies to all cash and debit services.
           </p>
         )}
 
@@ -226,10 +234,6 @@ export default function ServiceSelection({ booking, onUpdate, onNext }: Props) {
                       ${price}
                     </p>
                   )}
-                  <div className="mt-1 flex items-center gap-1 text-xs text-[#7c6269]">
-                    <span>◷</span>
-                    <span>{s.duration}</span>
-                  </div>
                 </div>
 
                 {!isContact && (
@@ -238,6 +242,12 @@ export default function ServiceSelection({ booking, onUpdate, onNext }: Props) {
               </button>
             );
           })}
+        </div>
+
+        <div className="flex justify-end">
+          <Button onClick={onNext} disabled={!service}>
+            Continue to Nail Preferences →
+          </Button>
         </div>
 
         <p className="text-center text-sm text-[#7c6269]">

@@ -40,7 +40,7 @@ function Home() {
             Elevate Your Style
           </p>
 
-          <h1 className="mb-4 font-serif text-6xl tracking-widest text-white drop-shadow-md md:text-7xl">
+          <h1 className="mb-4 font-serif text-6xl tracking-widest text-[#2f2024] drop-shadow-md md:text-7xl">
             VLDNAIL
           </h1>
 

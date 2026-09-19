@@ -4,7 +4,6 @@ export type ServiceDef = {
   name: ServiceName;
   newSetPrice: number | null;
   fillPrice: number | null;
-  duration: string;
   description: string;
 };
 
@@ -13,49 +12,48 @@ export const services: ServiceDef[] = [
     name: "Shellac",
     newSetPrice: 40,
     fillPrice: null,
-    duration: "1.5 hrs",
     description: "Classic gel polish finish",
   },
   {
     name: "Overlay",
     newSetPrice: 55,
     fillPrice: 45,
-    duration: "2.0 hrs",
     description: "Strength & shine, no extensions",
+  },
+  {
+    name: "Gel X",
+    newSetPrice: 55,
+    fillPrice: 45,
+    description: "Gel extensions with a lightweight finish",
   },
   {
     name: "Short",
     newSetPrice: 60,
     fillPrice: 50,
-    duration: "2.5 hrs",
     description: "Acrylic / Polygel / Hard Gel",
   },
   {
     name: "Medium",
     newSetPrice: 70,
     fillPrice: 60,
-    duration: "3.0 hrs",
     description: "Acrylic / Polygel / Hard Gel",
   },
   {
     name: "Long",
     newSetPrice: 80,
     fillPrice: 70,
-    duration: "3.5 hrs",
     description: "Acrylic / Polygel / Hard Gel",
   },
   {
     name: "XL",
     newSetPrice: 90,
     fillPrice: 80,
-    duration: "4.0 hrs",
     description: "Acrylic / Polygel / Hard Gel",
   },
   {
     name: "Press-ons",
     newSetPrice: null,
     fillPrice: null,
-    duration: "1–2 weeks",
     description: "Custom handmade — contact for pricing",
   },
 ];
@@ -100,6 +98,8 @@ export const extras = [
   { id: "broken_nails", label: "2 Broken Nails", priceMin: 5, priceMax: 5, display: "+$5" },
   { id: "acrylic_removal", label: "Acrylic Removal", priceMin: 15, priceMax: 20, display: "+$15–$20" },
   { id: "shellac_removal", label: "Shellac Removal", priceMin: 10, priceMax: 10, display: "+$10" },
+  { id: "gel_x_removal", label: "Gel X Removal", priceMin: 15, priceMax: 20, display: "+$15–$20" },
+  { id: "nail_fix", label: "Nail Fix (per nail)", priceMin: 5, priceMax: 10, display: "+$5–$10" },
   { id: "acrylic_ombre", label: "Acrylic Ombre", priceMin: 17.5, priceMax: 17.5, display: "+$17.5" },
   { id: "encapsulation", label: "Encapsulation", priceMin: 15, priceMax: 15, display: "+$15" },
 ];

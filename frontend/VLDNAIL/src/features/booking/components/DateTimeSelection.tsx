@@ -14,8 +14,9 @@ type Props = {
 
 const STEPS = [
   { label: "Choose a Service" },
-  { label: "Select Date & Time" },
+  { label: "Nail Preferences" },
   { label: "Customize & Price" },
+  { label: "Select Date & Time" },
 ];
 
 const DAYS = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
@@ -171,7 +172,6 @@ export default function DateTimeSelection({ booking, onUpdate, onNext, onBack }:
             <p className="mt-0.5 font-serif text-lg text-[#2f2024]">{service}</p>
             <div className="mt-1 flex items-center gap-4 text-xs text-[#7c6269]">
               {price !== null && <span className="text-[#D37E90]">${price}</span>}
-              <span>◷ {def?.duration}</span>
             </div>
           </div>
           <button
@@ -184,7 +184,7 @@ export default function DateTimeSelection({ booking, onUpdate, onNext, onBack }:
 
         {/* Stepper */}
         <div className="rounded-2xl border border-[#F5DDE1] bg-white/60 px-6 py-4">
-          <Stepper steps={STEPS} currentStep={2} />
+          <Stepper steps={STEPS} currentStep={4} />
         </div>
 
         {/* Calendar + Time slots */}
@@ -267,8 +267,6 @@ export default function DateTimeSelection({ booking, onUpdate, onNext, onBack }:
                   {formatDateDisplay(date!)}
                   {" · "}
                   {time}
-                  {" · "}
-                  Est. {def?.duration}
                 </span>
               ) : (
                 <span>Select a date and time to continue.</span>

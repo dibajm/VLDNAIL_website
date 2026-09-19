@@ -5,7 +5,7 @@ import { calculateTotal, formatDateDisplay } from "../utils/calculatePrice";
 type Props = { booking: BookingState };
 
 export default function BookingSummary({ booking }: Props) {
-  const { service, serviceType, date, time, designTier, extras } = booking;
+  const { service, serviceType, date, time, nailLength, nailShape, designTier, extras } = booking;
 
   const def = services.find((s) => s.name === service);
   const basePrice = def
@@ -37,7 +37,8 @@ export default function BookingSummary({ booking }: Props) {
           <div className="mt-1 flex flex-wrap gap-3 text-xs text-[#7c6269]">
             {date && <span>▦ {formatDateDisplay(date)}</span>}
             {time && <span>◷ {time}</span>}
-            {def && <span>◷ Est. {def.duration}</span>}
+            {nailLength && <span>{nailLength}</span>}
+            {nailShape && <span>{nailShape}</span>}
           </div>
         </div>
       </div>

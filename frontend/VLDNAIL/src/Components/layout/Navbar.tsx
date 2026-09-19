@@ -12,8 +12,9 @@ const navLinks = [
 
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpenPath, setMenuOpenPath] = useState<string | null>(null);
   const location = useLocation();
+  const menuOpen = menuOpenPath === location.pathname;
 
   useEffect(() => {
     function onScroll() {
@@ -22,11 +23,6 @@ function Navbar() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  // Close menu on route change
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [location]);
 
   return (
     <header
@@ -68,7 +64,7 @@ function Navbar() {
 
           {/* Hamburger — mobile only */}
           <button
-            onClick={() => setMenuOpen((o) => !o)}
+            onClick={() => setMenuOpenPath(menuOpen ? null : location.pathname)}
             className="flex flex-col items-center justify-center gap-1.5 md:hidden"
             aria-label="Toggle menu"
           >

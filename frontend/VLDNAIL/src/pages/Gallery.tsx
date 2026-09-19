@@ -122,6 +122,9 @@ export default function Gallery() {
             Explore our designs, styles, and finishes created with passion and
             precision.
           </p>
+          <p className="mt-3 max-w-xl text-xs leading-5 text-[#7c6269]">
+            Tier lists are examples of the design style and complexity. Your final design and price may vary based on your requested details.
+          </p>
         </div>
       </section>
 
@@ -189,6 +192,9 @@ export default function Gallery() {
             <h2 className="font-serif text-2xl text-[#2f2024]">Nail Shapes</h2>
             <span className="text-[#D37E90]">✦</span>
           </div>
+          <p className="mb-5 text-sm leading-6 text-[#6e565d]">
+            Use these shape guides as a reference when choosing your preferred nail shape. They are examples of the shape, not finished nail designs.
+          </p>
 
           {/* Horizontal scrollable strip */}
           <div className="flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none]">
@@ -201,7 +207,7 @@ export default function Gallery() {
                 <img
                   src={shape.img}
                   alt={shape.name}
-                  className="w-full rounded-xl object-cover"
+                  className="w-full rounded-xl bg-[#FAEDEF] object-contain"
                   style={{ height: 170 }}
                 />
                 <p className="text-sm font-medium text-[#2f2024]">{shape.name}</p>

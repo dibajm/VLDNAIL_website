@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { BookingState } from "../features/booking/booking.types";
 import ServiceSelection from "../features/booking/components/ServiceSelection";
+import NailPreferences from "../features/booking/components/NailPreferences";
 import DateTimeSelection from "../features/booking/components/DateTimeSelection";
 import PriceBuilder from "../features/booking/components/PriceBuilder";
 import ContactForm from "../features/booking/components/ContactForm";
@@ -11,6 +12,8 @@ const initial: BookingState = {
   step: 1,
   serviceType: "newSet",
   service: null,
+  nailLength: null,
+  nailShape: null,
   date: null,
   time: null,
   designTier: null,
@@ -42,7 +45,7 @@ export default function Booking() {
         />
       )}
       {booking.step === 2 && (
-        <DateTimeSelection
+        <NailPreferences
           booking={booking}
           onUpdate={update}
           onNext={() => goTo(3)}
@@ -58,10 +61,18 @@ export default function Booking() {
         />
       )}
       {booking.step === 4 && (
+        <DateTimeSelection
+          booking={booking}
+          onUpdate={update}
+          onNext={() => goTo(5)}
+          onBack={() => goTo(3)}
+        />
+      )}
+      {booking.step === 5 && (
         <ContactForm
           booking={booking}
           onUpdate={update}
-          onBack={() => goTo(3)}
+          onBack={() => goTo(4)}
         />
       )}
 

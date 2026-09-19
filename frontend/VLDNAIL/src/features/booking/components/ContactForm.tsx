@@ -14,6 +14,7 @@ type Props = {
 
 const STEPS = [
   { label: "Choose a Service" },
+  { label: "Nail Preferences" },
   { label: "Select Date & Time" },
   { label: "Customize & Price" },
   { label: "Your Information" },
@@ -89,7 +90,7 @@ export default function ContactForm({ booking, onUpdate, onBack }: Props) {
       <div className="mx-auto max-w-7xl space-y-6 px-6 py-10 md:px-16">
         {/* Stepper */}
         <div className="rounded-2xl border border-[#F5DDE1] bg-white/60 px-6 py-4">
-          <Stepper steps={STEPS} currentStep={4} />
+          <Stepper steps={STEPS} currentStep={5} />
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -188,11 +189,20 @@ export default function ContactForm({ booking, onUpdate, onBack }: Props) {
               {error && (
                 <p className="text-xs text-red-500">{error}</p>
               )}
-              <Button type="submit" disabled={loading}>
-                {loading ? "Sending…" : "Send Booking Request →"}
-              </Button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="text-xs text-[#D37E90] hover:underline"
+                >
+                  Back
+                </button>
+                <Button type="submit" disabled={loading}>
+                  {loading ? "Sending…" : "Send Booking Request →"}
+                </Button>
+              </div>
               <p className="text-xs text-[#7c6269]">
-                ◇ Your information is safe and never shared.
+                ● Your information is safe and never shared.
               </p>
             </div>
           </div>

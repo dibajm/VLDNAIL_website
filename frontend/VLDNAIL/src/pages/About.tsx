@@ -32,7 +32,6 @@ const policies = [
 ];
 
 const quickInfo = [
-  { icon: "◎", label: "Location", value: "Copperfield SE, Calgary, AB" },
   { icon: "◎", label: "Business Started", value: "2021" },
   { icon: "◎", label: "Languages", value: "English, Russian" },
   { icon: "◎", label: "Business Type", value: "Registered Business" },
@@ -235,27 +234,17 @@ export default function About() {
             </p>
           </div>
 
-          {/* Visit Me */}
+          {/* Studio information */}
           <div className="rounded-2xl border border-[#F5DDE1] bg-white/60 p-7">
             <div className="mb-5 flex items-center gap-2">
-              <h3 className="font-serif text-xl text-[#2f2024]">Visit Me</h3>
+              <h3 className="font-serif text-xl text-[#2f2024]">Studio Information</h3>
               <span className="text-[#D37E90]">✦</span>
             </div>
             <p className="mb-5 text-sm text-[#6e565d]">
-              Cozy private studio located in the Copperfield area of Calgary.
+              Appointments take place in a private Calgary studio. Full location details are shared after your booking is confirmed.
             </p>
-
-            {/* Map placeholder — swap with Google Maps embed once address is confirmed */}
-            <div className="flex h-44 items-center justify-center overflow-hidden rounded-xl bg-[#F5DDE1]">
-              <div className="text-center">
-                <span className="text-3xl text-[#D37E90]">◎</span>
-                <p className="mt-2 text-xs text-[#7c6269]">Map coming soon</p>
-              </div>
-            </div>
-
-            <div className="mt-4 flex items-center gap-2 text-sm text-[#5c4248]">
-              <span className="text-[#D37E90]">◎</span>
-              Copperfield SE, Calgary, AB
+            <div className="rounded-xl bg-[#F5DDE1] px-5 py-4 text-sm text-[#5c4248]">
+              Location details are provided privately after confirmation.
             </div>
           </div>
         </div>

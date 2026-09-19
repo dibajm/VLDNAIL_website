@@ -3,6 +3,7 @@ export type ServiceType = "newSet" | "fill";
 export type ServiceName =
   | "Shellac"
   | "Overlay"
+  | "Gel X"
   | "Short"
   | "Medium"
   | "Long"
@@ -12,9 +13,11 @@ export type ServiceName =
 export type DesignTier = 1 | 2 | 3 | 4;
 
 export type BookingState = {
-  step: 1 | 2 | 3 | 4;
+  step: 1 | 2 | 3 | 4 | 5;
   serviceType: ServiceType;
   service: ServiceName | null;
+  nailLength: string | null;
+  nailShape: string | null;
   date: string | null;
   time: string | null;
   designTier: DesignTier | null;

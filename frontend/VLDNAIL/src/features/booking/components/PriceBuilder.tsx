@@ -13,8 +13,9 @@ type Props = {
 
 const STEPS = [
   { label: "Choose a Service" },
-  { label: "Select Date & Time" },
+  { label: "Nail Preferences" },
   { label: "Customize & Price" },
+  { label: "Select Date & Time" },
 ];
 
 export default function PriceBuilder({ booking, onUpdate, onNext, onBack }: Props) {
@@ -70,7 +71,6 @@ export default function PriceBuilder({ booking, onUpdate, onNext, onBack }: Prop
               ) : (
                 basePrice !== null && <span className="text-[#D37E90]">${basePrice}</span>
               )}
-              <span>◷ {def?.duration}</span>
             </div>
           </div>
           <button
@@ -132,7 +132,7 @@ export default function PriceBuilder({ booking, onUpdate, onNext, onBack }: Prop
 
             <p className="mt-3 flex items-center gap-1 text-xs text-[#7c6269]">
               <span className="text-[#D37E90]">ℹ</span>
-              Prices may vary based on design complexity.
+              Prices may vary based on design complexity. Refer to the gallery for design examples before choosing a tier.
             </p>
           </div>
 

@@ -81,7 +81,7 @@ function Footer() {
 
             <p className="flex items-start gap-3">
               <span className="mt-0.5 text-base text-[#D37E90]">⌖</span>
-              Copperfield, Calgary, AB
+              Calgary, AB
             </p>
           </div>
         </div>
