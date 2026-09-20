@@ -35,7 +35,7 @@ export async function getAvailableSlots(req: Request, res: Response) {
 	if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isInteger(durationMinutes) || durationMinutes < 30 || durationMinutes > 720) {
 		throw new Error("VALIDATION_ERROR: Invalid availability query");
 	}
-	res.json({ slots: await listAvailableSlots(date, durationMinutes) });
+	res.json(await listAvailableSlots(date, durationMinutes));
 }
 
 export async function confirmBooking(req: Request, res: Response) {

@@ -14,7 +14,7 @@ export function parseAppointmentStart(date: string, time: string): string {
 }
 
 export function durationForTier(tier: BookingPayload["designTier"]): number {
-  return tier ? 90 + (tier - 1) * 30 : 90;
+  return tier ? 120 + (tier - 1) * 30 : 120;
 }
 
 export async function createHeldBooking(payload: BookingPayload) {
@@ -70,7 +70,7 @@ export async function listAvailableSlots(date: string, durationMinutes: number) 
   const dayStart = DateTime.fromISO(date, { zone: env.businessTimezone }).startOf("day");
   if (!dayStart.isValid) throw new Error("VALIDATION_ERROR: Invalid availability date");
   const window = await getAvailabilityWindow(date);
-  if (!window) return [];
+  if (!window) return { slots: [], openTime: null, closeTime: null, isOpen: false };
   const dayEnd = dayStart.plus({ days: 1 });
   const { data, error } = await supabaseAdmin
     .from("bookings")
@@ -83,10 +83,9 @@ export async function listAvailableSlots(date: string, durationMinutes: number) 
   const openMinutes = window.open.diff(dayStart, "minutes").minutes;
   const endMinutes = window.close.diff(dayStart, "minutes").minutes;
   const slots: string[] = [];
-  for (let minutes = openMinutes; minutes < endMinutes; minutes += 30) {
+  for (let minutes = openMinutes; minutes <= endMinutes; minutes += 30) {
     const candidateStart = dayStart.plus({ minutes });
     const candidateEnd = candidateStart.plus({ minutes: durationMinutes });
-    if (candidateEnd > dayStart.plus({ minutes: endMinutes })) continue;
     const overlapsBooking = (data ?? []).some((booking) => {
       const existingStart = DateTime.fromISO(booking.appointment_start).toMillis();
       const existingEnd = existingStart + booking.duration_minutes * 60_000;
@@ -101,7 +100,12 @@ export async function listAvailableSlots(date: string, durationMinutes: number) 
     if (blockedError) throw blockedError;
     if ((blocked ?? []).length === 0) slots.push(candidateStart.toFormat("h:mm a"));
   }
-  return slots;
+  return {
+    slots,
+    openTime: window.open.toFormat("h:mm a"),
+    closeTime: window.close.toFormat("h:mm a"),
+    isOpen: true,
+  };
 }
 
 export async function acceptBooking(id: string, durationMinutes: number) {

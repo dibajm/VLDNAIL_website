@@ -44,7 +44,7 @@ function generateTimeSlots(dateStr: string | null): string[] {
 }
 
 function defaultDuration(tier: BookingState["designTier"]) {
-  return tier ? 90 + (tier - 1) * 30 : 90;
+  return tier ? 120 + (tier - 1) * 30 : 120;
 }
 
 function Calendar({
@@ -140,6 +140,7 @@ function Calendar({
 export default function DateTimeSelection({ booking, onUpdate, onNext, onBack }: Props) {
   const { service, serviceType, date, time, designTier } = booking;
   const [availableSlots, setAvailableSlots] = useState<string[] | null>(null);
+  const [hoursLabel, setHoursLabel] = useState("Select a date to see hours");
   const def = services.find((s) => s.name === service);
   const price = def
     ? serviceType === "newSet"
@@ -154,8 +155,12 @@ export default function DateTimeSelection({ booking, onUpdate, onNext, onBack }:
     let cancelled = false;
     const params = new URLSearchParams({ date, durationMinutes: String(defaultDuration(designTier)) });
     void fetch(`${API_BASE_URL}/api/booking/availability?${params}`)
-      .then((response) => response.ok ? response.json() as Promise<{ slots: string[] }> : Promise.reject(new Error("Availability unavailable")))
-      .then((result) => { if (!cancelled) setAvailableSlots(result.slots); })
+      .then((response) => response.ok ? response.json() as Promise<{ slots: string[]; openTime: string | null; closeTime: string | null; isOpen: boolean }> : Promise.reject(new Error("Availability unavailable")))
+      .then((result) => {
+        if (cancelled) return;
+        setAvailableSlots(result.slots);
+        setHoursLabel(result.isOpen ? `We are open ${result.openTime} – ${result.closeTime}` : "We are closed on this day");
+      })
       .catch(() => { if (!cancelled) setAvailableSlots(generateTimeSlots(date)); });
     return () => { cancelled = true; };
   }, [date, designTier]);
@@ -217,7 +222,7 @@ export default function DateTimeSelection({ booking, onUpdate, onNext, onBack }:
             <Calendar selected={date} onSelect={(d) => onUpdate({ date: d, time: null })} />
             <div className="mt-4 flex items-center gap-2 rounded-lg bg-[#F5DDE1]/50 px-3 py-2 text-xs text-[#6e565d]">
               <span>▦</span>
-              <span>We are open Tuesday – Saturday, 10:00 AM – 3:00 PM</span>
+              <span>{hoursLabel}</span>
             </div>
           </div>
 

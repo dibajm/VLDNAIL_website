@@ -26,7 +26,7 @@ const mockBooking: PendingBooking = {
 };
 
 function defaultDuration(tier: number | null) {
-  return tier ? 90 + (tier - 1) * 30 : 90;
+  return tier ? 120 + (tier - 1) * 30 : 120;
 }
 
 function formatAppointment(value: string) {
@@ -270,7 +270,7 @@ export default function AdminDashboard() {
                       onChange={(event) => setDurations((current) => ({ ...current, [booking.id]: Number(event.target.value) }))}
                       className="mt-1 block w-full rounded-md border border-[#F5DDE1] bg-white px-3 py-2 text-sm font-normal text-[#2f2024]"
                     >
-                      {[90, 120, 150, 180, 210, 240].map((minutes) => <option key={minutes} value={minutes}>{minutes / 60} hours</option>)}
+                      {[120, 150, 180, 210, 240].map((minutes) => <option key={minutes} value={minutes}>{minutes / 60} hours</option>)}
                     </select>
                   </label>
                   <div className="flex gap-2">
@@ -342,8 +342,8 @@ export default function AdminDashboard() {
                   <div key={hour.day_of_week} className="grid grid-cols-[1fr_auto_1fr_1fr_auto] items-center gap-2 text-sm">
                     <span>{["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][hour.day_of_week]}</span>
                     <input type="checkbox" checked={hour.is_open} onChange={(event) => setHours((current) => current.map((entry) => entry.day_of_week === hour.day_of_week ? { ...entry, is_open: event.target.checked } : entry))} />
-                    <input type="time" disabled={!hour.is_open} value={hour.open_time?.slice(0, 5) ?? ""} onChange={(event) => setHours((current) => current.map((entry) => entry.day_of_week === hour.day_of_week ? { ...entry, open_time: event.target.value } : entry))} className="rounded-md border border-[#F5DDE1] px-2 py-1 disabled:bg-[#FAEDEF]" />
-                    <input type="time" disabled={!hour.is_open} value={hour.close_time?.slice(0, 5) ?? ""} onChange={(event) => setHours((current) => current.map((entry) => entry.day_of_week === hour.day_of_week ? { ...entry, close_time: event.target.value } : entry))} className="rounded-md border border-[#F5DDE1] px-2 py-1 disabled:bg-[#FAEDEF]" />
+                    <input type="time" step="1800" disabled={!hour.is_open} value={hour.open_time?.slice(0, 5) ?? ""} onChange={(event) => setHours((current) => current.map((entry) => entry.day_of_week === hour.day_of_week ? { ...entry, open_time: event.target.value } : entry))} className="rounded-md border border-[#F5DDE1] px-2 py-1 disabled:bg-[#FAEDEF]" />
+                    <input type="time" step="1800" disabled={!hour.is_open} value={hour.close_time?.slice(0, 5) ?? ""} onChange={(event) => setHours((current) => current.map((entry) => entry.day_of_week === hour.day_of_week ? { ...entry, close_time: event.target.value } : entry))} className="rounded-md border border-[#F5DDE1] px-2 py-1 disabled:bg-[#FAEDEF]" />
                     <button type="button" onClick={() => void saveHours(hour)} disabled={hoursBusyDay === hour.day_of_week} className="text-xs text-[#D37E90] hover:underline">{hoursBusyDay === hour.day_of_week ? "Saving…" : "Save"}</button>
                   </div>
                 ))}

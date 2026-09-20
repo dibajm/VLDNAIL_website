@@ -26,9 +26,13 @@ insert into public.business_hours (day_of_week, open_time, close_time, is_open)
 values
   (0, null, null, false),
   (1, null, null, false),
-  (2, '10:00', '15:00', true),
-  (3, '10:00', '15:00', true),
-  (4, '10:00', '15:00', true),
+  (2, '09:00', '13:00', true),
+  (3, '12:00', '17:00', true),
+  (4, '12:00', '17:00', true),
   (5, '10:00', '14:00', true),
-  (6, '10:00', '15:00', true)
-on conflict (day_of_week) do nothing;
+  (6, '10:00', '14:00', true)
+on conflict (day_of_week) do update set
+  open_time = excluded.open_time,
+  close_time = excluded.close_time,
+  is_open = excluded.is_open,
+  updated_at = now();
