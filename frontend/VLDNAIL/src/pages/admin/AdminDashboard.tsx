@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../../Components/ui/Button";
-import { acceptBooking, declineBooking, getCatalog, getPendingBookings, type CatalogItem, type PendingBooking, updateCatalogItem } from "../../services/adminApi";
+import { acceptBooking, addBlockedPeriod, declineBooking, getAvailabilitySettings, getCatalog, getPendingBookings, removeBlockedPeriod, type BlockedPeriod, type BusinessHour, type CatalogItem, type PendingBooking, updateBusinessHour, updateCatalogItem } from "../../services/adminApi";
 import { getSupabaseClient } from "../../services/supabase";
 
 const mockAdminEnabled = import.meta.env.VITE_MOCK_ADMIN === "true";
@@ -47,6 +47,11 @@ export default function AdminDashboard() {
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
   const [catalogDrafts, setCatalogDrafts] = useState<Record<string, Partial<CatalogItem>>>({});
   const [catalogBusyId, setCatalogBusyId] = useState<string | null>(null);
+  const [hours, setHours] = useState<BusinessHour[]>([]);
+  const [blockedPeriods, setBlockedPeriods] = useState<BlockedPeriod[]>([]);
+  const [hoursBusyDay, setHoursBusyDay] = useState<number | null>(null);
+  const [blockedDraft, setBlockedDraft] = useState({ starts_at: "", ends_at: "", reason: "" });
+  const [blockedBusy, setBlockedBusy] = useState(false);
 
   async function loadCatalog(token: string) {
     const items = await getCatalog(token);
@@ -97,6 +102,9 @@ export default function AdminDashboard() {
         setBookings(nextBookings);
         setDurations(Object.fromEntries(nextBookings.map((booking) => [booking.id, booking.duration_minutes || defaultDuration(booking.design_tier)])));
         await loadCatalog(token);
+        const availability = await getAvailabilitySettings(token);
+        setHours(availability.hours);
+        setBlockedPeriods(availability.blockedPeriods);
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : "Unable to load inquiries.");
       } finally {
@@ -158,6 +166,54 @@ export default function AdminDashboard() {
       setError(err instanceof Error ? err.message : "Unable to save this service.");
     } finally {
       setCatalogBusyId(null);
+    }
+  }
+
+  async function saveHours(hour: BusinessHour) {
+    const { data } = await getSupabaseClient().auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return navigate("/studio/login");
+    setHoursBusyDay(hour.day_of_week);
+    try {
+      const updated = await updateBusinessHour(hour.day_of_week, { open_time: hour.open_time, close_time: hour.close_time, is_open: hour.is_open }, token);
+      setHours((current) => current.map((entry) => entry.day_of_week === updated.day_of_week ? updated : entry));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to save business hours.");
+    } finally {
+      setHoursBusyDay(null);
+    }
+  }
+
+  async function saveBlockedPeriod(event: React.FormEvent) {
+    event.preventDefault();
+    const { data } = await getSupabaseClient().auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return navigate("/studio/login");
+    setBlockedBusy(true);
+    try {
+      const period = await addBlockedPeriod({
+        starts_at: new Date(blockedDraft.starts_at).toISOString(),
+        ends_at: new Date(blockedDraft.ends_at).toISOString(),
+        reason: blockedDraft.reason,
+      }, token);
+      setBlockedPeriods((current) => [...current, period].sort((a, b) => a.starts_at.localeCompare(b.starts_at)));
+      setBlockedDraft({ starts_at: "", ends_at: "", reason: "" });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to block this time.");
+    } finally {
+      setBlockedBusy(false);
+    }
+  }
+
+  async function deleteBlockedPeriod(period: BlockedPeriod) {
+    const { data } = await getSupabaseClient().auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return navigate("/studio/login");
+    try {
+      await removeBlockedPeriod(period.id, token);
+      setBlockedPeriods((current) => current.filter((entry) => entry.id !== period.id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to remove this blocked time.");
     }
   }
 
@@ -270,6 +326,41 @@ export default function AdminDashboard() {
                 </article>
               );
             })}
+          </div>
+        </section>
+
+        <section className="mt-14">
+          <div className="mb-5">
+            <p className="text-sm text-[#6e565d]">Changes here immediately control the customer calendar.</p>
+            <h2 className="mt-1 font-serif text-2xl">Hours & blocked time</h2>
+          </div>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="rounded-2xl border border-[#F5DDE1] bg-white/80 p-5">
+              <h3 className="mb-4 font-serif text-lg">Weekly hours</h3>
+              <div className="space-y-3">
+                {hours.map((hour) => (
+                  <div key={hour.day_of_week} className="grid grid-cols-[1fr_auto_1fr_1fr_auto] items-center gap-2 text-sm">
+                    <span>{["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][hour.day_of_week]}</span>
+                    <input type="checkbox" checked={hour.is_open} onChange={(event) => setHours((current) => current.map((entry) => entry.day_of_week === hour.day_of_week ? { ...entry, is_open: event.target.checked } : entry))} />
+                    <input type="time" disabled={!hour.is_open} value={hour.open_time?.slice(0, 5) ?? ""} onChange={(event) => setHours((current) => current.map((entry) => entry.day_of_week === hour.day_of_week ? { ...entry, open_time: event.target.value } : entry))} className="rounded-md border border-[#F5DDE1] px-2 py-1 disabled:bg-[#FAEDEF]" />
+                    <input type="time" disabled={!hour.is_open} value={hour.close_time?.slice(0, 5) ?? ""} onChange={(event) => setHours((current) => current.map((entry) => entry.day_of_week === hour.day_of_week ? { ...entry, close_time: event.target.value } : entry))} className="rounded-md border border-[#F5DDE1] px-2 py-1 disabled:bg-[#FAEDEF]" />
+                    <button type="button" onClick={() => void saveHours(hour)} disabled={hoursBusyDay === hour.day_of_week} className="text-xs text-[#D37E90] hover:underline">{hoursBusyDay === hour.day_of_week ? "Saving…" : "Save"}</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-5">
+              <form onSubmit={(event) => void saveBlockedPeriod(event)} className="rounded-2xl border border-[#F5DDE1] bg-white/80 p-5">
+                <h3 className="mb-4 font-serif text-lg">Block off time</h3>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-[#7c6269]">Starts<input required type="datetime-local" value={blockedDraft.starts_at} onChange={(event) => setBlockedDraft((current) => ({ ...current, starts_at: event.target.value }))} className="mt-1 block w-full rounded-md border border-[#F5DDE1] bg-white px-2 py-2 text-sm font-normal normal-case tracking-normal text-[#2f2024]" /></label>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-[#7c6269]">Ends<input required type="datetime-local" value={blockedDraft.ends_at} onChange={(event) => setBlockedDraft((current) => ({ ...current, ends_at: event.target.value }))} className="mt-1 block w-full rounded-md border border-[#F5DDE1] bg-white px-2 py-2 text-sm font-normal normal-case tracking-normal text-[#2f2024]" /></label>
+                </div>
+                <label className="mt-3 block text-xs font-semibold uppercase tracking-wider text-[#7c6269]">Reason<input value={blockedDraft.reason} onChange={(event) => setBlockedDraft((current) => ({ ...current, reason: event.target.value }))} placeholder="Personal day, break, appointment…" className="mt-1 block w-full rounded-md border border-[#F5DDE1] bg-white px-3 py-2 text-sm font-normal normal-case tracking-normal text-[#2f2024]" /></label>
+                <Button type="submit" disabled={blockedBusy} className="mt-4">{blockedBusy ? "Blocking…" : "Block this time"}</Button>
+              </form>
+              {blockedPeriods.length > 0 && <div className="rounded-2xl border border-[#F5DDE1] bg-white/80 p-5"><h3 className="mb-3 font-serif text-lg">Blocked periods</h3><div className="space-y-3">{blockedPeriods.map((period) => <div key={period.id} className="flex items-start justify-between gap-3 text-sm"><div><p>{new Date(period.starts_at).toLocaleString()} – {new Date(period.ends_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</p><p className="text-xs text-[#7c6269]">{period.reason || "Unavailable"}</p></div><button type="button" onClick={() => void deleteBlockedPeriod(period)} className="text-xs text-[#D37E90] hover:underline">Remove</button></div>)}</div></div>}
+            </div>
           </div>
         </section>
       </div>

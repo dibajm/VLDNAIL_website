@@ -2,6 +2,7 @@ import { DateTime } from "luxon";
 import { env } from "../config/env.js";
 import { supabaseAdmin } from "./supabase.service.js";
 import type { BookingPayload } from "../types/booking.types.js";
+import { getAvailabilityWindow } from "./availability.service.js";
 
 export function parseAppointmentStart(date: string, time: string): string {
   const start = DateTime.fromFormat(`${date} ${time}`, "yyyy-MM-dd h:mm a", {
@@ -62,6 +63,45 @@ export async function listHeldBookings() {
 
   if (error) throw error;
   return data;
+}
+
+export async function listAvailableSlots(date: string, durationMinutes: number) {
+  await expireStaleBookings();
+  const dayStart = DateTime.fromISO(date, { zone: env.businessTimezone }).startOf("day");
+  if (!dayStart.isValid) throw new Error("VALIDATION_ERROR: Invalid availability date");
+  const window = await getAvailabilityWindow(date);
+  if (!window) return [];
+  const dayEnd = dayStart.plus({ days: 1 });
+  const { data, error } = await supabaseAdmin
+    .from("bookings")
+    .select("appointment_start, duration_minutes")
+    .in("status", ["held", "confirmed"])
+    .lt("appointment_start", dayEnd.toUTC().toISO())
+    .gte("appointment_start", dayStart.minus({ hours: 4 }).toUTC().toISO());
+  if (error) throw error;
+
+  const openMinutes = window.open.diff(dayStart, "minutes").minutes;
+  const endMinutes = window.close.diff(dayStart, "minutes").minutes;
+  const slots: string[] = [];
+  for (let minutes = openMinutes; minutes < endMinutes; minutes += 30) {
+    const candidateStart = dayStart.plus({ minutes });
+    const candidateEnd = candidateStart.plus({ minutes: durationMinutes });
+    if (candidateEnd > dayStart.plus({ minutes: endMinutes })) continue;
+    const overlapsBooking = (data ?? []).some((booking) => {
+      const existingStart = DateTime.fromISO(booking.appointment_start).toMillis();
+      const existingEnd = existingStart + booking.duration_minutes * 60_000;
+      return candidateStart.toMillis() < existingEnd && candidateEnd.toMillis() > existingStart;
+    });
+    if (overlapsBooking) continue;
+    const { data: blocked, error: blockedError } = await supabaseAdmin
+      .from("blocked_periods")
+      .select("starts_at, ends_at")
+      .lt("starts_at", candidateEnd.toUTC().toISO())
+      .gt("ends_at", candidateStart.toUTC().toISO());
+    if (blockedError) throw blockedError;
+    if ((blocked ?? []).length === 0) slots.push(candidateStart.toFormat("h:mm a"));
+  }
+  return slots;
 }
 
 export async function acceptBooking(id: string, durationMinutes: number) {

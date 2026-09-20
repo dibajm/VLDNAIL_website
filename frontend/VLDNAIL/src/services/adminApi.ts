@@ -35,6 +35,22 @@ export type CatalogItem = {
   updated_at: string;
 };
 
+export type BusinessHour = {
+  day_of_week: number;
+  open_time: string | null;
+  close_time: string | null;
+  is_open: boolean;
+  updated_at: string;
+};
+
+export type BlockedPeriod = {
+  id: string;
+  starts_at: string;
+  ends_at: string;
+  reason: string;
+  created_at: string;
+};
+
 async function request<T>(path: string, token: string, options: RequestInit = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
@@ -80,4 +96,28 @@ export async function updateCatalogItem(id: string, values: Partial<CatalogItem>
     body: JSON.stringify(values),
   });
   return result.item;
+}
+
+export async function getAvailabilitySettings(token: string) {
+  return request<{ hours: BusinessHour[]; blockedPeriods: BlockedPeriod[] }>("/api/admin/availability", token);
+}
+
+export async function updateBusinessHour(dayOfWeek: number, values: Pick<BusinessHour, "open_time" | "close_time" | "is_open">, token: string) {
+  const result = await request<{ hour: BusinessHour }>(`/api/admin/availability/hours/${dayOfWeek}`, token, {
+    method: "PATCH",
+    body: JSON.stringify(values),
+  });
+  return result.hour;
+}
+
+export async function addBlockedPeriod(values: { starts_at: string; ends_at: string; reason: string }, token: string) {
+  const result = await request<{ blockedPeriod: BlockedPeriod }>("/api/admin/availability/blocked-periods", token, {
+    method: "POST",
+    body: JSON.stringify(values),
+  });
+  return result.blockedPeriod;
+}
+
+export async function removeBlockedPeriod(id: string, token: string) {
+  await request(`/api/admin/availability/blocked-periods/${id}`, token, { method: "DELETE" });
 }

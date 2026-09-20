@@ -19,6 +19,8 @@ create index if not exists catalog_items_category_order_idx
 
 alter table public.catalog_items enable row level security;
 
+grant select, insert, update, delete on table public.catalog_items to service_role;
+
 insert into public.catalog_items (category, slug, label, description, new_set_price, fill_price, sort_order)
 values
   ('service', 'shellac', 'Shellac', 'Classic gel polish finish', 40, null, 10),

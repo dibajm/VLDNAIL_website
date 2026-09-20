@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { BookingState } from "../booking.types";
 import { services } from "../data/pricing";
 import { formatDateDisplay } from "../utils/calculatePrice";
 import Stepper from "../../../Components/ui/Stepper";
 import Button from "../../../Components/ui/Button";
+import { API_BASE_URL } from "../../../services/constants";
 
 type Props = {
   booking: BookingState;
@@ -40,6 +41,10 @@ function generateTimeSlots(dateStr: string | null): string[] {
     slots.push(`${displayH}:${min === 0 ? "00" : "30"} ${ampm}`);
   }
   return slots;
+}
+
+function defaultDuration(tier: BookingState["designTier"]) {
+  return tier ? 90 + (tier - 1) * 30 : 90;
 }
 
 function Calendar({
@@ -133,7 +138,8 @@ function Calendar({
 }
 
 export default function DateTimeSelection({ booking, onUpdate, onNext, onBack }: Props) {
-  const { service, serviceType, date, time } = booking;
+  const { service, serviceType, date, time, designTier } = booking;
+  const [availableSlots, setAvailableSlots] = useState<string[] | null>(null);
   const def = services.find((s) => s.name === service);
   const price = def
     ? serviceType === "newSet"
@@ -141,7 +147,20 @@ export default function DateTimeSelection({ booking, onUpdate, onNext, onBack }:
       : def.fillPrice
     : null;
 
-  const timeSlots = generateTimeSlots(date);
+  useEffect(() => {
+    if (!date) {
+      return;
+    }
+    let cancelled = false;
+    const params = new URLSearchParams({ date, durationMinutes: String(defaultDuration(designTier)) });
+    void fetch(`${API_BASE_URL}/api/booking/availability?${params}`)
+      .then((response) => response.ok ? response.json() as Promise<{ slots: string[] }> : Promise.reject(new Error("Availability unavailable")))
+      .then((result) => { if (!cancelled) setAvailableSlots(result.slots); })
+      .catch(() => { if (!cancelled) setAvailableSlots(generateTimeSlots(date)); });
+    return () => { cancelled = true; };
+  }, [date, designTier]);
+
+  const timeSlots = date ? (availableSlots ?? generateTimeSlots(date)) : [];
   const canContinue = !!date && !!time;
 
   return (
