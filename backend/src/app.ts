@@ -2,6 +2,8 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import { bookingRouter } from "./routes/booking.routes.js";
+import { catalogRouter } from "./routes/catalog.routes.js";
+import { publicCatalogRouter } from "./routes/public-catalog.routes.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 
 export function createApp() {
@@ -17,6 +19,8 @@ export function createApp() {
 	});
 
 	app.use("/api/booking", bookingRouter);
+	app.use("/api/admin/catalog", catalogRouter);
+		app.use("/api/catalog", publicCatalogRouter);
 	app.use(errorHandler);
 
 	return app;

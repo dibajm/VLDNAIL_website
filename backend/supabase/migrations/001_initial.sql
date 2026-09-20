@@ -26,9 +26,9 @@ create index if not exists bookings_status_hold_idx
 alter table public.bookings
   add constraint bookings_active_time_exclusion
   exclude using gist (
-    tstzrange(
-      appointment_start,
-      appointment_start + (duration_minutes * interval '1 minute'),
+    tsrange(
+      appointment_start at time zone 'UTC',
+      (appointment_start at time zone 'UTC') + (duration_minutes * interval '1 minute'),
       '[)'
     ) with &&
   ) where (status in ('held', 'confirmed'));

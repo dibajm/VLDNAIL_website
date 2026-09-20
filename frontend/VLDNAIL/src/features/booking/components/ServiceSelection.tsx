@@ -1,8 +1,11 @@
+import { useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import type { BookingState, ServiceName, ServiceType } from "../booking.types";
 import { services } from "../data/pricing";
 import { hours, bookingPolicies } from "../data/policies";
 import Button from "../../../Components/ui/Button";
+import { getPublicCatalog } from "../../../services/catalogApi";
+import type { ServiceDef } from "../data/pricing";
 
 type Props = {
   booking: BookingState;
@@ -61,7 +64,22 @@ function NailIcon({ name }: { name: ServiceName }) {
 
 export default function ServiceSelection({ booking, onUpdate, onNext }: Props) {
   const { serviceType, service } = booking;
+  const [availableServices, setAvailableServices] = useState(services);
 
+  useEffect(() => {
+    let cancelled = false;
+    void getPublicCatalog("service").then((items) => {
+      if (cancelled || items.length === 0) return;
+      const nextServices = items.map((item) => ({
+        name: item.label as ServiceDef["name"],
+        newSetPrice: item.new_set_price,
+        fillPrice: item.fill_price,
+        description: item.description,
+      }));
+      setAvailableServices(nextServices);
+    }).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, []);
   function selectService(name: ServiceName) {
     const fixedLength = ["Short", "Medium", "Long", "XL"].includes(name)
       ? name
@@ -73,7 +91,7 @@ export default function ServiceSelection({ booking, onUpdate, onNext }: Props) {
     onUpdate({ serviceType: type, service: null, nailLength: null, nailShape: null });
   }
 
-  const visibleServices = services.filter((s) => {
+  const visibleServices = availableServices.filter((s) => {
     if (serviceType === "fill") {
       return s.fillPrice !== null;
     }

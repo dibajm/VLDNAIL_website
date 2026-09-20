@@ -6,6 +6,8 @@ import Services from "./pages/Services";
 import About from "./pages/About";
 import PressOns from "./pages/PressOns";
 import ScrollToTop from "./Components/ScrollToTop";
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
       <Route path="/services" element={<Services />} />
       <Route path="/about" element={<About />} />
       <Route path="/press-ons" element={<PressOns />} />
+      <Route path="/studio/login" element={<AdminLogin />} />
+      <Route path="/studio" element={<AdminDashboard />} />
     </Routes>
     </>
   );

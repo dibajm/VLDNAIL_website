@@ -1,9 +1,27 @@
+import { useEffect, useState } from "react";
 import Navbar from "../Components/layout/Navbar";
 import Footer from "../Components/layout/Footer";
 import Button from "../Components/ui/Button";
 import { services, designTiers, extras } from "../features/booking/data/pricing";
+import { getPublicCatalog } from "../services/catalogApi";
+import type { ServiceDef } from "../features/booking/data/pricing";
 
 export default function Services() {
+  const [visibleServices, setVisibleServices] = useState(services);
+
+    useEffect(() => {
+      void getPublicCatalog("service").then((items) => {
+        if (items.length > 0) {
+          setVisibleServices(items.map((item) => ({
+            name: item.label as ServiceDef["name"],
+            newSetPrice: item.new_set_price,
+            fillPrice: item.fill_price,
+            description: item.description,
+          })));
+        }
+      }).catch(() => undefined);
+    }, []);
+
   return (
     <main className="min-h-screen bg-[#FAEDEF] text-[#2f2024]">
       <Navbar />
@@ -42,7 +60,7 @@ export default function Services() {
 
           {/* Desktop table */}
           <div className="hidden divide-y divide-[#F5DDE1] rounded-2xl border border-[#F5DDE1] bg-white/60 sm:block">
-            {services.map((svc) => (
+            {visibleServices.map((svc) => (
               <div
                 key={svc.name}
                 className="grid grid-cols-4 items-center gap-4 px-5 py-4"
@@ -63,7 +81,7 @@ export default function Services() {
 
           {/* Mobile cards */}
           <div className="space-y-3 sm:hidden">
-            {services.map((svc) => (
+            {visibleServices.map((svc) => (
               <div
                 key={svc.name}
                 className="rounded-2xl border border-[#F5DDE1] bg-white/60 px-5 py-4"
