@@ -1,9 +1,9 @@
 export const hours = [
-  { day: "Tuesday", time: "10:00 AM – 3:00 PM" },
-  { day: "Wednesday", time: "10:00 AM – 3:00 PM" },
-  { day: "Thursday", time: "10:00 AM – 3:00 PM" },
+  { day: "Tuesday", time: "9:00 AM – 1:00 PM" },
+  { day: "Wednesday", time: "12:00 PM – 5:00 PM" },
+  { day: "Thursday", time: "12:00 AM – 5:00 PM" },
   { day: "Friday", time: "10:00 AM – 2:00 PM" },
-  { day: "Saturday", time: "10:00 AM – 3:00 PM" },
+  { day: "Saturday", time: "10:00 AM – 2:00 PM" },
 ];
 
 export const bookingPolicies = [
