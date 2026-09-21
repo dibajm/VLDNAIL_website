@@ -70,8 +70,15 @@ export async function listAvailableSlots(date: string, durationMinutes: number) 
   const dayStart = DateTime.fromISO(date, { zone: env.businessTimezone }).startOf("day");
   if (!dayStart.isValid) throw new Error("VALIDATION_ERROR: Invalid availability date");
   const window = await getAvailabilityWindow(date);
-  if (!window) return { slots: [], openTime: null, closeTime: null, isOpen: false };
+  if (!window) return { slots: [], openTime: null, closeTime: null, isOpen: false, blockedReasons: [] };
   const dayEnd = dayStart.plus({ days: 1 });
+  const { data: blocked, error: blockedError } = await supabaseAdmin
+    .from("blocked_periods")
+    .select("starts_at, ends_at, reason")
+    .lt("starts_at", dayEnd.toUTC().toISO())
+    .gt("ends_at", dayStart.toUTC().toISO());
+  if (blockedError) throw blockedError;
+  const blockedPeriods = blocked ?? [];
   const { data, error } = await supabaseAdmin
     .from("bookings")
     .select("appointment_start, duration_minutes")
@@ -92,19 +99,18 @@ export async function listAvailableSlots(date: string, durationMinutes: number) 
       return candidateStart.toMillis() < existingEnd && candidateEnd.toMillis() > existingStart;
     });
     if (overlapsBooking) continue;
-    const { data: blocked, error: blockedError } = await supabaseAdmin
-      .from("blocked_periods")
-      .select("starts_at, ends_at")
-      .lt("starts_at", candidateEnd.toUTC().toISO())
-      .gt("ends_at", candidateStart.toUTC().toISO());
-    if (blockedError) throw blockedError;
-    if ((blocked ?? []).length === 0) slots.push(candidateStart.toFormat("h:mm a"));
+    const overlapsBlockedPeriod = blockedPeriods.some((period) =>
+      candidateStart.toMillis() < DateTime.fromISO(period.ends_at).toMillis()
+      && candidateEnd.toMillis() > DateTime.fromISO(period.starts_at).toMillis(),
+    );
+    if (!overlapsBlockedPeriod) slots.push(candidateStart.toFormat("h:mm a"));
   }
   return {
     slots,
     openTime: window.open.toFormat("h:mm a"),
     closeTime: window.close.toFormat("h:mm a"),
     isOpen: true,
+    blockedReasons: blockedPeriods.map((period) => period.reason).filter(Boolean),
   };
 }
 

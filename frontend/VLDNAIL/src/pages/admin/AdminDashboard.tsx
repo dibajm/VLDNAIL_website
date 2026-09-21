@@ -37,6 +37,15 @@ function formatAppointment(value: string) {
   }).format(new Date(value));
 }
 
+const timeOptions = Array.from({ length: 34 }, (_, index) => {
+  const optionIndex = index + 15;
+  const hour = Math.floor(optionIndex / 2);
+  const minute = optionIndex % 2 === 0 ? "00" : "30";
+  const value = `${String(hour).padStart(2, "0")}:${minute}`;
+  const label = new Date(`2000-01-01T${value}:00`).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  return { value, label };
+});
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<PendingBooking[]>([]);
@@ -50,6 +59,8 @@ export default function AdminDashboard() {
   const [hours, setHours] = useState<BusinessHour[]>([]);
   const [blockedPeriods, setBlockedPeriods] = useState<BlockedPeriod[]>([]);
   const [hoursBusyDay, setHoursBusyDay] = useState<number | null>(null);
+  const [hoursSavedDay, setHoursSavedDay] = useState<number | null>(null);
+  const [hoursErrorDay, setHoursErrorDay] = useState<number | null>(null);
   const [blockedDraft, setBlockedDraft] = useState({ starts_at: "", ends_at: "", reason: "" });
   const [blockedBusy, setBlockedBusy] = useState(false);
 
@@ -174,10 +185,14 @@ export default function AdminDashboard() {
     const token = data.session?.access_token;
     if (!token) return navigate("/studio/login");
     setHoursBusyDay(hour.day_of_week);
+    setHoursErrorDay(null);
     try {
       const updated = await updateBusinessHour(hour.day_of_week, { open_time: hour.open_time, close_time: hour.close_time, is_open: hour.is_open }, token);
       setHours((current) => current.map((entry) => entry.day_of_week === updated.day_of_week ? updated : entry));
+      setHoursSavedDay(hour.day_of_week);
+      window.setTimeout(() => setHoursSavedDay((current) => current === hour.day_of_week ? null : current), 2500);
     } catch (err) {
+      setHoursErrorDay(hour.day_of_week);
       setError(err instanceof Error ? err.message : "Unable to save business hours.");
     } finally {
       setHoursBusyDay(null);
@@ -342,9 +357,9 @@ export default function AdminDashboard() {
                   <div key={hour.day_of_week} className="grid grid-cols-[1fr_auto_1fr_1fr_auto] items-center gap-2 text-sm">
                     <span>{["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][hour.day_of_week]}</span>
                     <input type="checkbox" checked={hour.is_open} onChange={(event) => setHours((current) => current.map((entry) => entry.day_of_week === hour.day_of_week ? { ...entry, is_open: event.target.checked } : entry))} />
-                    <input type="time" step="1800" disabled={!hour.is_open} value={hour.open_time?.slice(0, 5) ?? ""} onChange={(event) => setHours((current) => current.map((entry) => entry.day_of_week === hour.day_of_week ? { ...entry, open_time: event.target.value } : entry))} className="rounded-md border border-[#F5DDE1] px-2 py-1 disabled:bg-[#FAEDEF]" />
-                    <input type="time" step="1800" disabled={!hour.is_open} value={hour.close_time?.slice(0, 5) ?? ""} onChange={(event) => setHours((current) => current.map((entry) => entry.day_of_week === hour.day_of_week ? { ...entry, close_time: event.target.value } : entry))} className="rounded-md border border-[#F5DDE1] px-2 py-1 disabled:bg-[#FAEDEF]" />
-                    <button type="button" onClick={() => void saveHours(hour)} disabled={hoursBusyDay === hour.day_of_week} className="text-xs text-[#D37E90] hover:underline">{hoursBusyDay === hour.day_of_week ? "Saving…" : "Save"}</button>
+                    <select disabled={!hour.is_open} value={hour.open_time?.slice(0, 5) ?? ""} onChange={(event) => setHours((current) => current.map((entry) => entry.day_of_week === hour.day_of_week ? { ...entry, open_time: event.target.value } : entry))} className="rounded-md border border-[#F5DDE1] px-2 py-1 disabled:bg-[#FAEDEF]">{timeOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
+                    <select disabled={!hour.is_open} value={hour.close_time?.slice(0, 5) ?? ""} onChange={(event) => setHours((current) => current.map((entry) => entry.day_of_week === hour.day_of_week ? { ...entry, close_time: event.target.value } : entry))} className="rounded-md border border-[#F5DDE1] px-2 py-1 disabled:bg-[#FAEDEF]">{timeOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
+                    <button type="button" onClick={() => void saveHours(hour)} disabled={hoursBusyDay === hour.day_of_week} className="text-xs text-[#D37E90] hover:underline">{hoursBusyDay === hour.day_of_week ? "Saving…" : hoursErrorDay === hour.day_of_week ? "Retry" : hoursSavedDay === hour.day_of_week ? "Saved" : "Save"}</button>
                   </div>
                 ))}
               </div>

@@ -54,6 +54,7 @@ export type BlockedPeriod = {
 async function request<T>(path: string, token: string, options: RequestInit = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
+    cache: options.method ? options.cache : "no-store",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
@@ -66,6 +67,7 @@ async function request<T>(path: string, token: string, options: RequestInit = {}
     throw new Error(body?.error ?? "The request could not be completed.");
   }
 
+  if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
 }
 

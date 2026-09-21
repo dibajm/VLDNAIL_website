@@ -10,7 +10,11 @@ export async function listBusinessHours() {
 }
 
 export async function updateBusinessHours(dayOfWeek: number, values: Pick<BusinessHour, "open_time" | "close_time" | "is_open">) {
-	const { data, error } = await supabaseAdmin.from("business_hours").upsert({ day_of_week: dayOfWeek, ...values, updated_at: new Date().toISOString() }).select().single();
+	const { data, error } = await supabaseAdmin
+		.from("business_hours")
+		.upsert({ day_of_week: dayOfWeek, ...values, updated_at: new Date().toISOString() }, { onConflict: "day_of_week" })
+		.select()
+		.single();
 	if (error) throw error;
 	return data as BusinessHour;
 }

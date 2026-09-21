@@ -141,6 +141,7 @@ export default function DateTimeSelection({ booking, onUpdate, onNext, onBack }:
   const { service, serviceType, date, time, designTier } = booking;
   const [availableSlots, setAvailableSlots] = useState<string[] | null>(null);
   const [hoursLabel, setHoursLabel] = useState("Select a date to see hours");
+  const [blockedReasons, setBlockedReasons] = useState<string[]>([]);
   const def = services.find((s) => s.name === service);
   const price = def
     ? serviceType === "newSet"
@@ -154,15 +155,21 @@ export default function DateTimeSelection({ booking, onUpdate, onNext, onBack }:
     }
     let cancelled = false;
     const params = new URLSearchParams({ date, durationMinutes: String(defaultDuration(designTier)) });
-    void fetch(`${API_BASE_URL}/api/booking/availability?${params}`)
-      .then((response) => response.ok ? response.json() as Promise<{ slots: string[]; openTime: string | null; closeTime: string | null; isOpen: boolean }> : Promise.reject(new Error("Availability unavailable")))
+    const loadAvailability = () => fetch(`${API_BASE_URL}/api/booking/availability?${params}`, { cache: "no-store" })
+      .then((response) => response.ok ? response.json() as Promise<{ slots: string[]; openTime: string | null; closeTime: string | null; isOpen: boolean; blockedReasons: string[] }> : Promise.reject(new Error("Availability unavailable")))
       .then((result) => {
         if (cancelled) return;
         setAvailableSlots(result.slots);
+        setBlockedReasons(result.blockedReasons);
         setHoursLabel(result.isOpen ? `We are open ${result.openTime} – ${result.closeTime}` : "We are closed on this day");
       })
       .catch(() => { if (!cancelled) setAvailableSlots(generateTimeSlots(date)); });
-    return () => { cancelled = true; };
+    void loadAvailability();
+    const refreshTimer = window.setInterval(() => void loadAvailability(), 15_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(refreshTimer);
+    };
   }, [date, designTier]);
 
   const timeSlots = date ? (availableSlots ?? generateTimeSlots(date)) : [];
@@ -261,9 +268,10 @@ export default function DateTimeSelection({ booking, onUpdate, onNext, onBack }:
               </div>
             ) : (
               date && (
-                <p className="text-sm text-[#D37E90]">
-                  No available slots on this day.
-                </p>
+                <div className="text-sm text-[#D37E90]">
+                  <p>No available slots on this day.</p>
+                  {blockedReasons.length > 0 && <p className="mt-1 text-xs text-[#7c6269]">{blockedReasons.join(" · ")}</p>}
+                </div>
               )
             )}
 
