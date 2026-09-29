@@ -27,7 +27,10 @@ async function sendEmail(to: string, subject: string, html: string, attachments?
     attachments,
   });
 
-  if (error) console.error("Email notification failed", error);
+  if (error) {
+    console.error("Email notification failed", error);
+    throw new Error(`EMAIL_SEND_FAILED: ${error.message}`);
+  }
 }
 
 export function notifyNewBooking(booking: BookingNotification) {

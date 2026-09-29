@@ -23,7 +23,7 @@ function routeId(req: Request): string {
 export async function createBooking(req: Request, res: Response) {
 	const payload = parseBookingPayload(req.body);
 	const booking = await createHeldBooking(payload);
-	void notifyNewBooking(booking);
+	notifyNewBooking(booking).catch((error) => console.error("Failed to send new-booking notification", error));
 	res.status(201).json({ booking });
 }
 
@@ -52,19 +52,19 @@ export async function confirmBooking(req: Request, res: Response) {
 	}
 
 	const booking = await acceptBooking(routeId(req), durationMinutes);
-	void notifyBookingDecision(booking, true);
+	notifyBookingDecision(booking, true).catch((error) => console.error("Failed to send booking-accepted notification", error));
 	res.json({ booking });
 }
 
 export async function rejectBooking(req: Request, res: Response) {
 	const booking = await declineBooking(routeId(req));
-	void notifyBookingDecision(booking, false);
+	notifyBookingDecision(booking, false).catch((error) => console.error("Failed to send booking-declined notification", error));
 	res.json({ booking });
 }
 
 export async function cancelConfirmedBooking(req: Request, res: Response) {
 	const booking = await cancelBooking(routeId(req));
-	void notifyBookingDecision(booking, false);
+	notifyBookingDecision(booking, false).catch((error) => console.error("Failed to send booking-cancelled notification", error));
 	res.json({ booking });
 }
 

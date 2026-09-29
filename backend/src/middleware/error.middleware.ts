@@ -23,5 +23,10 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
 		return;
 	}
 
+	if (error instanceof Error && error.message.startsWith("EMAIL_SEND_FAILED:")) {
+		res.status(502).json({ error: "The inquiry was not emailed. Please try again." });
+		return;
+	}
+
 	res.status(500).json({ error: "Something went wrong. Please try again." });
 };
