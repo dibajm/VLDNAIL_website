@@ -259,7 +259,10 @@ export default function AdminDashboard() {
             <p className="text-sm text-[#6e565d]">Review, adjust, and confirm appointment holds.</p>
             <h2 className="mt-1 font-serif text-2xl">Pending requests</h2>
           </div>
-          <button type="button" onClick={() => void loadBookings()} className="text-sm text-[#D37E90] hover:underline">Refresh</button>
+          <div className="flex items-center gap-4">
+            <button type="button" onClick={() => navigate("/studio/history")} className="text-sm text-[#D37E90] hover:underline">View history</button>
+            <button type="button" onClick={() => void loadBookings()} className="text-sm text-[#D37E90] hover:underline">Refresh</button>
+          </div>
         </div>
 
         {error && <p className="mb-5 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}

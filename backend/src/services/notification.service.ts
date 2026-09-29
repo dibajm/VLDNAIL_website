@@ -11,7 +11,9 @@ type BookingNotification = {
   contact: { firstName: string; lastName: string; email: string };
 };
 
-async function sendEmail(to: string, subject: string, html: string) {
+type EmailAttachment = { filename: string; content: Buffer };
+
+async function sendEmail(to: string, subject: string, html: string, attachments?: EmailAttachment[]) {
   if (!resend) {
     console.warn("RESEND_API_KEY is not configured; skipping email notification");
     return;
@@ -22,6 +24,7 @@ async function sendEmail(to: string, subject: string, html: string) {
     to,
     subject,
     html,
+    attachments,
   });
 
   if (error) console.error("Email notification failed", error);
@@ -43,4 +46,8 @@ export function notifyBookingDecision(booking: BookingNotification, accepted: bo
       ? `<p>Hi ${booking.contact.firstName}, your VLDNAIL appointment request has been confirmed.</p><p>${booking.service}</p>`
       : `<p>Hi ${booking.contact.firstName}, your requested VLDNAIL appointment is not available.</p><p>Please contact us to choose another time.</p>`,
   );
+}
+
+export function notifyPressOnInquiry(subject: string, html: string, attachments: EmailAttachment[]) {
+  return sendEmail(env.adminEmail, subject, html, attachments);
 }

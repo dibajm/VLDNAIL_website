@@ -8,6 +8,7 @@ import PressOns from "./pages/PressOns";
 import ScrollToTop from "./Components/ScrollToTop";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminHistory from "./pages/admin/AdminHistory";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
       <Route path="/press-ons" element={<PressOns />} />
       <Route path="/studio/login" element={<AdminLogin />} />
       <Route path="/studio" element={<AdminDashboard />} />
+      <Route path="/studio/history" element={<AdminHistory />} />
     </Routes>
     </>
   );

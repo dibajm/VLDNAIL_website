@@ -65,6 +65,18 @@ export async function listHeldBookings() {
   return data;
 }
 
+export async function listBookingHistory() {
+  await expireStaleBookings();
+  const { data, error } = await supabaseAdmin
+    .from("bookings")
+    .select("*")
+    .in("status", ["confirmed", "declined", "cancelled", "expired"])
+    .order("appointment_start", { ascending: true });
+
+  if (error) throw error;
+  return data;
+}
+
 export async function listAvailableSlots(date: string, durationMinutes: number) {
   await expireStaleBookings();
   const dayStart = DateTime.fromISO(date, { zone: env.businessTimezone }).startOf("day");
@@ -131,6 +143,32 @@ export async function declineBooking(id: string) {
     .eq("id", id)
     .eq("status", "held")
     .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function cancelBooking(id: string) {
+  const { data, error } = await supabaseAdmin
+    .from("bookings")
+    .update({ status: "cancelled" })
+    .eq("id", id)
+    .eq("status", "confirmed")
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteBookingHistory(id: string) {
+  const { data, error } = await supabaseAdmin
+    .from("bookings")
+    .delete()
+    .eq("id", id)
+    .in("status", ["declined", "cancelled", "expired"])
+    .select("id, status")
     .single();
 
   if (error) throw error;

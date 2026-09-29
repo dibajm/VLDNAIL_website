@@ -1,9 +1,12 @@
 import type { Request, Response } from "express";
 import {
 	acceptBooking,
+	cancelBooking,
 	createHeldBooking,
 	declineBooking,
+	deleteBookingHistory,
 	listAvailableSlots,
+	listBookingHistory,
 	listHeldBookings,
 } from "../services/booking.service.js";
 import { notifyBookingDecision, notifyNewBooking } from "../services/notification.service.js";
@@ -27,6 +30,10 @@ export async function createBooking(req: Request, res: Response) {
 export async function getHeldBookings(_req: Request, res: Response) {
 	const bookings = await listHeldBookings();
 	res.json({ bookings });
+}
+
+export async function getBookingHistory(_req: Request, res: Response) {
+	res.json({ bookings: await listBookingHistory() });
 }
 
 export async function getAvailableSlots(req: Request, res: Response) {
@@ -53,4 +60,15 @@ export async function rejectBooking(req: Request, res: Response) {
 	const booking = await declineBooking(routeId(req));
 	void notifyBookingDecision(booking, false);
 	res.json({ booking });
+}
+
+export async function cancelConfirmedBooking(req: Request, res: Response) {
+	const booking = await cancelBooking(routeId(req));
+	void notifyBookingDecision(booking, false);
+	res.json({ booking });
+}
+
+export async function removeBookingHistory(req: Request, res: Response) {
+	await deleteBookingHistory(routeId(req));
+	res.status(204).send();
 }

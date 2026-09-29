@@ -76,6 +76,11 @@ export async function getPendingBookings(token: string) {
   return result.bookings;
 }
 
+export async function getBookingHistory(token: string) {
+  const result = await request<{ bookings: PendingBooking[] }>('/api/booking/history', token);
+  return result.bookings;
+}
+
 export async function acceptBooking(id: string, durationMinutes: number, token: string) {
   return request(`/api/booking/${id}/accept`, token, {
     method: "POST",
@@ -85,6 +90,14 @@ export async function acceptBooking(id: string, durationMinutes: number, token: 
 
 export async function declineBooking(id: string, token: string) {
   return request(`/api/booking/${id}/decline`, token, { method: "POST" });
+}
+
+export async function cancelBooking(id: string, token: string) {
+  return request(`/api/booking/${id}/cancel`, token, { method: "POST" });
+}
+
+export async function deleteBookingHistory(id: string, token: string) {
+  await request(`/api/booking/${id}/history`, token, { method: "DELETE" });
 }
 
 export async function getCatalog(token: string) {
