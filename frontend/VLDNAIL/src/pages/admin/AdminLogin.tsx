@@ -11,7 +11,29 @@ export default function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  async function handleReset() {
+    if (!email) {
+      setError("Enter your email address first, then choose Reset password.");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const { error: resetError } = await getSupabaseClient().auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/studio/login`,
+      });
+      if (resetError) throw resetError;
+      setNotice("If that address has an account, a reset link is on its way.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not send the reset email.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -45,9 +67,18 @@ export default function AdminLogin() {
         </div>
 
         {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+        {notice && <p className="mt-4 text-sm text-[#6e565d]">{notice}</p>}
         <Button type="submit" fullWidth disabled={loading} className="mt-6">
           {loading ? "Signing in…" : "Sign in"}
         </Button>
+        <button
+          type="button"
+          onClick={handleReset}
+          disabled={loading}
+          className="mt-4 w-full text-sm text-[#D37E90] hover:underline disabled:opacity-60"
+        >
+          Reset password
+        </button>
         {mockAdminEnabled && (
           <button
             type="button"

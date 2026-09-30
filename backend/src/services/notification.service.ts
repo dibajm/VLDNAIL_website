@@ -78,7 +78,7 @@ export function notifyNewBooking(booking: BookingNotification) {
   const tier = booking.design_tier ?? "not selected";
 
   return sendEmail({
-    to: env.adminEmail,
+    to: env.notificationToEmail,
     // Replying goes to the client rather than into the void, which also tells
     // Gmail this is a real thread.
     replyTo: booking.contact.email,
@@ -107,7 +107,7 @@ export function notifyBookingDecision(booking: BookingNotification, accepted: bo
 
   return sendEmail({
     to: booking.contact.email,
-    replyTo: env.adminEmail,
+    replyTo: env.notificationToEmail,
     subject: accepted ? "Your VLDNAIL booking is confirmed" : "Update about your VLDNAIL booking request",
     html: accepted
       ? `<p>Hi ${escapeHtml(first)}, your VLDNAIL appointment request has been confirmed.</p><p>${escapeHtml(booking.service)}</p>`
@@ -130,5 +130,5 @@ export function notifyPressOnInquiry(
   replyTo: string,
   attachments: EmailAttachment[],
 ) {
-  return sendEmail({ to: env.adminEmail, subject, html, text, replyTo, attachments });
+  return sendEmail({ to: env.notificationToEmail, subject, html, text, replyTo, attachments });
 }
