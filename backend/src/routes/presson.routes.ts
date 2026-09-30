@@ -1,6 +1,7 @@
 import { Router } from "express";
 import multer from "multer";
 import { createPressOnInquiry } from "../controllers/presson.controller.js";
+import { submitLimiter } from "../middleware/ratelimit.middleware.js";
 
 const upload = multer({
 	 storage: multer.memoryStorage(),
@@ -10,4 +11,4 @@ const upload = multer({
 
 export const pressOnRouter = Router();
 
-pressOnRouter.post("/", upload.array("photos", 5), createPressOnInquiry);
+pressOnRouter.post("/", submitLimiter, upload.array("photos", 5), createPressOnInquiry);

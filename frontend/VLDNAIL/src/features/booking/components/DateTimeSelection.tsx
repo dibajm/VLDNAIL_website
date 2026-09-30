@@ -69,7 +69,8 @@ function Calendar({
   function isDisabled(day: number) {
     const date = new Date(year, month, day);
     const dow = date.getDay();
-    return dow === 0 || dow === 1 || date < today;
+    // Today is closed off too: appointments start from tomorrow.
+    return dow === 0 || dow === 1 || date <= today;
   }
 
   function toISO(day: number) {

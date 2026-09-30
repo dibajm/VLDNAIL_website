@@ -10,11 +10,12 @@ import {
 	rejectBooking,
 } from "../controllers/booking.controller.js";
 import { requireAdmin } from "../middleware/admin.middleware.js";
+import { readLimiter, submitLimiter } from "../middleware/ratelimit.middleware.js";
 
 export const bookingRouter = Router();
 
-bookingRouter.post("/", createBooking);
-bookingRouter.get("/availability", getAvailableSlots);
+bookingRouter.post("/", submitLimiter, createBooking);
+bookingRouter.get("/availability", readLimiter, getAvailableSlots);
 bookingRouter.get("/pending", requireAdmin, getHeldBookings);
 bookingRouter.get("/history", requireAdmin, getBookingHistory);
 bookingRouter.post("/:id/accept", requireAdmin, confirmBooking);

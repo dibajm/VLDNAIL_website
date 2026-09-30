@@ -17,8 +17,20 @@ export function durationForTier(tier: BookingPayload["designTier"]): number {
   return tier ? 120 + (tier - 1) * 30 : 120;
 }
 
+// Appointments start the day after the request, so today and anything earlier
+// is not bookable. The calendar hides those days; this keeps a direct API call
+// from getting around it.
+export function isBookableDate(date: string): boolean {
+  const day = DateTime.fromISO(date, { zone: env.businessTimezone }).startOf("day");
+  if (!day.isValid) return false;
+  return day > DateTime.now().setZone(env.businessTimezone).startOf("day");
+}
+
 export async function createHeldBooking(payload: BookingPayload) {
   await expireStaleBookings();
+  if (!isBookableDate(payload.date)) {
+    throw new Error("VALIDATION_ERROR: Appointments must be booked at least one day in advance.");
+  }
   const appointmentStart = parseAppointmentStart(payload.date, payload.time);
   const { data, error } = await supabaseAdmin
     .from("bookings")
@@ -83,6 +95,15 @@ export async function listAvailableSlots(date: string, durationMinutes: number) 
   if (!dayStart.isValid) throw new Error("VALIDATION_ERROR: Invalid availability date");
   const window = await getAvailabilityWindow(date);
   if (!window) return { slots: [], openTime: null, closeTime: null, isOpen: false, blockedReasons: [] };
+  if (!isBookableDate(date)) {
+    return {
+      slots: [],
+      openTime: window.open.toFormat("h:mm a"),
+      closeTime: window.close.toFormat("h:mm a"),
+      isOpen: true,
+      blockedReasons: ["Same-day booking is not available."],
+    };
+  }
   const dayEnd = dayStart.plus({ days: 1 });
   const { data: blocked, error: blockedError } = await supabaseAdmin
     .from("blocked_periods")
