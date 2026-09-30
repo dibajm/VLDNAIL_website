@@ -33,6 +33,8 @@ const empty: Form = {
   details: "",
 };
 
+const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+
 export default function PressOns() {
   const [form, setForm] = useState<Form>(empty);
   const [photos, setPhotos] = useState<File[]>([]);
@@ -48,9 +50,21 @@ export default function PressOns() {
 
   function addPhotos(files: FileList | null) {
     if (!files) return;
-    const newFiles = Array.from(files).slice(0, 5 - photos.length);
-    const newPreviews = newFiles.map((f) => URL.createObjectURL(f));
-    setPhotos((prev) => [...prev, ...newFiles]);
+    const selected = Array.from(files).slice(0, 5 - photos.length);
+    // Caught here so an oversized photo fails immediately instead of after the
+    // whole file has uploaded. The server enforces the same limit.
+    const tooLarge = selected.filter((f) => f.size > MAX_PHOTO_BYTES);
+    const accepted = selected.filter((f) => f.size <= MAX_PHOTO_BYTES);
+
+    setError(
+      tooLarge.length
+        ? `${tooLarge.map((f) => f.name).join(", ")} ${tooLarge.length > 1 ? "are" : "is"} over 10MB. Please choose a smaller photo.`
+        : null,
+    );
+
+    if (!accepted.length) return;
+    const newPreviews = accepted.map((f) => URL.createObjectURL(f));
+    setPhotos((prev) => [...prev, ...accepted]);
     setPreviews((prev) => [...prev, ...newPreviews]);
   }
 
