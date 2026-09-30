@@ -27,6 +27,8 @@ export async function createPressOnInquiry(req: Request, res: Response) {
 	await notifyPressOnInquiry(
 		email.subject,
 		email.html,
+		email.text,
+		parsed.data.email,
 		files.map((file) => ({ filename: file.originalname, content: file.buffer })),
 	);
 	res.status(202).json({ message: "Press-on inquiry sent" });

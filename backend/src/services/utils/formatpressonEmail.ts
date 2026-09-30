@@ -24,6 +24,21 @@ export function formatPressOnEmail(inquiry: PressOnInquiry) {
 	const name = `${inquiry.firstName} ${inquiry.lastName}`;
 	return {
 		subject: `New press-on inquiry: ${name}`,
+		text: [
+			"A new custom press-on inquiry is waiting for review.",
+			"",
+			`Customer: ${name}`,
+			`Email: ${inquiry.email}`,
+			`Phone: ${inquiry.phone || "Not provided"}`,
+			`Instagram: ${inquiry.instagram || "Not provided"}`,
+			"",
+			`Length: ${inquiry.length}`,
+			`Shape: ${inquiry.shape}`,
+			`Occasion: ${inquiry.occasion || "Not provided"}`,
+			"",
+			"Additional details:",
+			inquiry.details || "None provided",
+		].join("\n"),
 		html: [
 			"<p>A new custom press-on inquiry is waiting for review.</p>",
 			`<p><strong>Customer:</strong> ${escapeHtml(name)}<br />`,
