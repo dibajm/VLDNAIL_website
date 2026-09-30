@@ -143,6 +143,7 @@ export default function DateTimeSelection({ booking, onUpdate, onNext, onBack }:
   const [availableSlots, setAvailableSlots] = useState<string[] | null>(null);
   const [hoursLabel, setHoursLabel] = useState("Select a date to see hours");
   const [blockedReasons, setBlockedReasons] = useState<string[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
   const def = services.find((s) => s.name === service);
   const price = def
     ? serviceType === "newSet"
@@ -156,6 +157,10 @@ export default function DateTimeSelection({ booking, onUpdate, onNext, onBack }:
     }
     let cancelled = false;
     const params = new URLSearchParams({ date, durationMinutes: String(defaultDuration(designTier)) });
+    // Only the first load for a date shows the waiting message; the background
+    // refresh below must not flash it every 15 seconds.
+    setAvailableSlots(null);
+    setLoadingSlots(true);
     const loadAvailability = () => fetch(`${API_BASE_URL}/api/booking/availability?${params}`, { cache: "no-store" })
       .then((response) => response.ok ? response.json() as Promise<{ slots: string[]; openTime: string | null; closeTime: string | null; isOpen: boolean; blockedReasons: string[] }> : Promise.reject(new Error("Availability unavailable")))
       .then((result) => {
@@ -164,7 +169,8 @@ export default function DateTimeSelection({ booking, onUpdate, onNext, onBack }:
         setBlockedReasons(result.blockedReasons);
         setHoursLabel(result.isOpen ? `We are open ${result.openTime} – ${result.closeTime}` : "We are closed on this day");
       })
-      .catch(() => { if (!cancelled) setAvailableSlots(generateTimeSlots(date)); });
+      .catch(() => { if (!cancelled) setAvailableSlots(generateTimeSlots(date)); })
+      .finally(() => { if (!cancelled) setLoadingSlots(false); });
     void loadAvailability();
     const refreshTimer = window.setInterval(() => void loadAvailability(), 15_000);
     return () => {
@@ -173,7 +179,9 @@ export default function DateTimeSelection({ booking, onUpdate, onNext, onBack }:
     };
   }, [date, designTier]);
 
-  const timeSlots = date ? (availableSlots ?? generateTimeSlots(date)) : [];
+  // Nothing is offered until the real availability lands, so a slow first
+  // response can never show times that are already taken.
+  const timeSlots = date && availableSlots ? availableSlots : [];
   const canContinue = !!date && !!time;
 
   return (
@@ -266,6 +274,11 @@ export default function DateTimeSelection({ booking, onUpdate, onNext, onBack }:
                     {time === slot && <span className="ml-2">✓</span>}
                   </button>
                 ))}
+              </div>
+            ) : loadingSlots ? (
+              <div className="flex items-center gap-3 text-sm text-[#6e565d]">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#F5DDE1] border-t-[#D37E90]" />
+                <span>One moment — finding available times…</span>
               </div>
             ) : (
               date && (
