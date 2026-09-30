@@ -1,7 +1,21 @@
 import type { ErrorRequestHandler } from "express";
+import { MulterError } from "multer";
 
 export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
 	console.error(error);
+
+	// Without this, an oversized photo reaches the visitor as a bare "Something
+	// went wrong" and they have no idea the file was the problem.
+	if (error instanceof MulterError) {
+		const message =
+			error.code === "LIMIT_FILE_SIZE"
+				? "Each photo must be under 10MB. Please choose a smaller file."
+				: error.code === "LIMIT_FILE_COUNT" || error.code === "LIMIT_UNEXPECTED_FILE"
+					? "Please attach no more than 5 photos."
+					: "That photo could not be uploaded. Please try another file.";
+		res.status(400).json({ error: message });
+		return;
+	}
 
 	if (error instanceof Error && error.message === "BOOKING_TIME_UNAVAILABLE") {
 		res.status(409).json({ error: "That time is no longer available." });
