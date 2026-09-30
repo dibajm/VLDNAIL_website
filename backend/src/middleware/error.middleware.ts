@@ -17,6 +17,13 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
 		return;
 	}
 
+	// express.json() throws a SyntaxError on an unparseable body; that is the
+	// caller's mistake, not ours.
+	if (error instanceof SyntaxError && "body" in error) {
+		res.status(400).json({ error: "The request body could not be read." });
+		return;
+	}
+
 	if (error instanceof Error && error.message === "BOOKING_TIME_UNAVAILABLE") {
 		res.status(409).json({ error: "That time is no longer available." });
 		return;

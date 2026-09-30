@@ -13,6 +13,18 @@ type BookingNotification = {
 
 type EmailAttachment = { filename: string; content: Buffer };
 
+// Names and service labels are free-form visitor input, so they are escaped
+// before they reach the HTML body.
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  }[character] ?? character));
+}
+
 type EmailOptions = {
   to: string;
   subject: string;
@@ -73,10 +85,10 @@ export function notifyNewBooking(booking: BookingNotification) {
     subject: `New booking inquiry: ${name}`,
     html: [
       "<p>A new booking inquiry is waiting for review.</p>",
-      `<p><strong>Client:</strong> ${name}<br />`,
-      `<strong>Service:</strong> ${booking.service}<br />`,
+      `<p><strong>Client:</strong> ${escapeHtml(name)}<br />`,
+      `<strong>Service:</strong> ${escapeHtml(booking.service)}<br />`,
       `<strong>Tier:</strong> ${tier}</p>`,
-      `<p>Booking ID: ${booking.id}</p>`,
+      `<p>Booking ID: ${escapeHtml(booking.id)}</p>`,
     ].join(""),
     text: [
       "A new booking inquiry is waiting for review.",
@@ -98,8 +110,8 @@ export function notifyBookingDecision(booking: BookingNotification, accepted: bo
     replyTo: env.adminEmail,
     subject: accepted ? "Your VLDNAIL booking is confirmed" : "Update about your VLDNAIL booking request",
     html: accepted
-      ? `<p>Hi ${first}, your VLDNAIL appointment request has been confirmed.</p><p>${booking.service}</p>`
-      : `<p>Hi ${first}, your requested VLDNAIL appointment is not available.</p><p>Please reply to this email to choose another time.</p>`,
+      ? `<p>Hi ${escapeHtml(first)}, your VLDNAIL appointment request has been confirmed.</p><p>${escapeHtml(booking.service)}</p>`
+      : `<p>Hi ${escapeHtml(first)}, your requested VLDNAIL appointment is not available.</p><p>Please reply to this email to choose another time.</p>`,
     text: accepted
       ? [`Hi ${first},`, "", "Your VLDNAIL appointment request has been confirmed.", "", booking.service].join("\n")
       : [
