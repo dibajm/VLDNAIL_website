@@ -63,9 +63,9 @@ function Footer() {
           <div className="flex flex-col gap-4 text-xs">
             <a
               href="mailto:valeriya.lazar.nails@gmail.com"
-              className="flex items-start gap-3 transition hover:text-[#D37E90]"
+              className="flex items-center gap-3 transition hover:text-[#D37E90]"
             >
-              <span className="mt-0.5 text-base text-[#D37E90]">✉</span>
+              <span className="flex w-4 justify-center text-base text-[#D37E90]">✉</span>
               valeriya.lazar.nails@gmail.com
             </a>
 
@@ -75,12 +75,19 @@ function Footer() {
               rel="noopener noreferrer"
               className="flex items-center gap-3 transition hover:text-[#D37E90]"
             >
-              <span className="text-base text-[#D37E90]">◎</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" className="h-4 w-4 shrink-0 text-[#D37E90]">
+                <rect x="3" y="3" width="18" height="18" rx="5" />
+                <circle cx="12" cy="12" r="4" />
+                <circle cx="17.5" cy="6.5" r="0.75" fill="currentColor" />
+              </svg>
               @VLDnail
             </a>
 
-            <p className="flex items-start gap-3">
-              <span className="mt-0.5 text-base text-[#D37E90]">⌖</span>
+            <p className="flex items-center gap-3">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" aria-hidden="true" className="h-4 w-4 shrink-0 text-[#D37E90]">
+                <path d="M12 21.5s-7-8-7-12.5a7 7 0 0 1 14 0c0 4.5-7 12.5-7 12.5z" />
+                <circle cx="12" cy="9" r="2.75" />
+              </svg>
               Calgary, AB
             </p>
           </div>
