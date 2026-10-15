@@ -3,7 +3,6 @@ import type { ReactElement } from "react";
 import type { BookingState, ServiceName, ServiceType } from "../booking.types";
 import { services } from "../data/pricing";
 import { hours, bookingPolicies } from "../data/policies";
-import Button from "../../../Components/ui/Button";
 import { getPublicCatalog } from "../../../services/catalogApi";
 import type { ServiceDef } from "../data/pricing";
 
@@ -85,6 +84,7 @@ export default function ServiceSelection({ booking, onUpdate, onNext }: Props) {
       ? name
       : null;
     onUpdate({ service: name, nailLength: fixedLength });
+    onNext();
   }
 
   function setType(type: ServiceType) {
@@ -260,12 +260,6 @@ export default function ServiceSelection({ booking, onUpdate, onNext }: Props) {
               </button>
             );
           })}
-        </div>
-
-        <div className="flex justify-end">
-          <Button onClick={onNext} disabled={!service}>
-            Continue to Nail Preferences →
-          </Button>
         </div>
 
         <p className="text-center text-sm text-[#7c6269]">
