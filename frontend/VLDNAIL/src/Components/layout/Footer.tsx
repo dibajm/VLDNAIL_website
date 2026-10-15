@@ -14,13 +14,13 @@ function Footer() {
           </p>
           <div className="mt-6 flex items-center gap-4">
             <a
-              href="https://instagram.com/VLdnail"
+              href="https://instagram.com/VLDnail"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram"
               className="flex h-8 w-8 items-center justify-center rounded-full border border-[#D37E90]/30 bg-white/60 text-sm text-[#D37E90] transition hover:bg-[#F5DDE1]"
             >
-              ◎
+              @
             </a>
             <a
               href="mailto:valeriya.lazar.nails@gmail.com"
@@ -70,13 +70,13 @@ function Footer() {
             </a>
 
             <a
-              href="https://instagram.com/VLdnail"
+              href="https://instagram.com/VLDnail"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 transition hover:text-[#D37E90]"
             >
               <span className="text-base text-[#D37E90]">◎</span>
-              @VLdnail
+              @VLDnail
             </a>
 
             <p className="flex items-start gap-3">
