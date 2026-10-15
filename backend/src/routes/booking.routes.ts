@@ -5,6 +5,7 @@ import {
 	createBooking,
 	getAvailableSlots,
 	getBookingHistory,
+	getClosedDays,
 	getHeldBookings,
 	removeBookingHistory,
 	rejectBooking,
@@ -16,6 +17,7 @@ export const bookingRouter = Router();
 
 bookingRouter.post("/", submitLimiter, createBooking);
 bookingRouter.get("/availability", readLimiter, getAvailableSlots);
+bookingRouter.get("/closed-days", readLimiter, getClosedDays);
 bookingRouter.get("/pending", requireAdmin, getHeldBookings);
 bookingRouter.get("/history", requireAdmin, getBookingHistory);
 bookingRouter.post("/:id/accept", requireAdmin, confirmBooking);

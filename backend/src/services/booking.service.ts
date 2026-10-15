@@ -2,7 +2,7 @@ import { DateTime } from "luxon";
 import { env } from "../config/env.js";
 import { supabaseAdmin } from "./supabase.service.js";
 import type { BookingPayload } from "../types/booking.types.js";
-import { getAvailabilityWindow } from "./availability.service.js";
+import { getAvailabilityWindow, listBusinessHours } from "./availability.service.js";
 
 export function parseAppointmentStart(date: string, time: string): string {
   const start = DateTime.fromFormat(`${date} ${time}`, "yyyy-MM-dd h:mm a", {
@@ -145,6 +145,44 @@ export async function listAvailableSlots(date: string, durationMinutes: number) 
     isOpen: true,
     blockedReasons: blockedPeriods.map((period) => period.reason).filter(Boolean),
   };
+}
+
+// Days in a month the calendar should grey out: the studio is closed that
+// weekday, or blocked periods cover the whole opening window. A day with only
+// part of it blocked stays selectable so its remaining slots can be offered.
+export async function listClosedDays(month: string) {
+  const monthStart = DateTime.fromISO(`${month}-01`, { zone: env.businessTimezone }).startOf("day");
+  if (!monthStart.isValid) throw new Error("VALIDATION_ERROR: Invalid month");
+  const monthEnd = monthStart.plus({ months: 1 });
+  const hours = await listBusinessHours();
+  const { data: blocked, error } = await supabaseAdmin
+    .from("blocked_periods")
+    .select("starts_at, ends_at")
+    .lt("starts_at", monthEnd.toUTC().toISO())
+    .gt("ends_at", monthStart.toUTC().toISO());
+  if (error) throw error;
+  const periods = (blocked ?? [])
+    .map((period) => ({ start: DateTime.fromISO(period.starts_at).toMillis(), end: DateTime.fromISO(period.ends_at).toMillis() }))
+    .sort((a, b) => a.start - b.start);
+
+  const closed: string[] = [];
+  for (let day = monthStart; day < monthEnd; day = day.plus({ days: 1 })) {
+    const date = day.toISODate() as string;
+    const hour = hours.find((h) => h.day_of_week === day.weekday % 7);
+    if (!hour || !hour.is_open || !hour.open_time || !hour.close_time) {
+      closed.push(date);
+      continue;
+    }
+    const open = DateTime.fromISO(`${date}T${hour.open_time}`, { zone: env.businessTimezone }).toMillis();
+    const close = DateTime.fromISO(`${date}T${hour.close_time}`, { zone: env.businessTimezone }).toMillis();
+    let coveredUntil = open;
+    for (const period of periods) {
+      if (period.start > coveredUntil) break;
+      coveredUntil = Math.max(coveredUntil, period.end);
+    }
+    if (coveredUntil >= close) closed.push(date);
+  }
+  return closed;
 }
 
 export async function acceptBooking(id: string, durationMinutes: number) {

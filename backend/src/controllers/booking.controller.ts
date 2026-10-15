@@ -6,6 +6,7 @@ import {
 	declineBooking,
 	deleteBookingHistory,
 	listAvailableSlots,
+	listClosedDays,
 	listBookingHistory,
 	listHeldBookings,
 } from "../services/booking.service.js";
@@ -43,6 +44,12 @@ export async function getAvailableSlots(req: Request, res: Response) {
 		throw new Error("VALIDATION_ERROR: Invalid availability query");
 	}
 	res.json(await listAvailableSlots(date, durationMinutes));
+}
+
+export async function getClosedDays(req: Request, res: Response) {
+	const month = typeof req.query.month === "string" ? req.query.month : "";
+	if (!/^\d{4}-\d{2}$/.test(month)) throw new Error("VALIDATION_ERROR: Invalid month");
+	res.json({ closedDays: await listClosedDays(month) });
 }
 
 export async function confirmBooking(req: Request, res: Response) {

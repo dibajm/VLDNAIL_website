@@ -65,12 +65,27 @@ function Calendar({
   const month = current.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDay = new Date(year, month, 1).getDay();
+  const monthKey = `${year}-${String(month + 1).padStart(2, "0")}`;
+  const [closedDays, setClosedDays] = useState<Set<string>>(new Set());
+
+  // Days the studio has blocked off in the admin are greyed out so clients
+  // never pick a date that has no times. If the lookup fails the calendar
+  // still works and the time panel reports the day as unavailable.
+  useEffect(() => {
+    let cancelled = false;
+    setClosedDays(new Set());
+    fetch(`${API_BASE_URL}/api/booking/closed-days?month=${monthKey}`, { cache: "no-store" })
+      .then((response) => response.ok ? response.json() as Promise<{ closedDays: string[] }> : Promise.reject(new Error("Closed days unavailable")))
+      .then((result) => { if (!cancelled) setClosedDays(new Set(result.closedDays)); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [monthKey]);
 
   function isDisabled(day: number) {
     const date = new Date(year, month, day);
     const dow = date.getDay();
     // Today is closed off too: appointments start from tomorrow.
-    return dow === 0 || dow === 1 || date <= today;
+    return dow === 0 || dow === 1 || date <= today || closedDays.has(toISO(day));
   }
 
   function toISO(day: number) {
