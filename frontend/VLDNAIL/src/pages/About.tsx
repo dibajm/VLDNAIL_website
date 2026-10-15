@@ -205,14 +205,14 @@ export default function About() {
 
             <div className="space-y-3">
               <a
-                href="https://instagram.com/VLdnail"
+                href="https://instagram.com/VLDnail"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-between rounded-xl border border-[#F5DDE1] bg-[#FAEDEF] px-4 py-3 transition hover:border-[#D37E90]"
               >
                 <div className="flex items-center gap-3">
                   <span className="text-[#D37E90]">◎</span>
-                  <span className="text-sm text-[#2f2024]">@VLdnail</span>
+                  <span className="text-sm text-[#2f2024]">@VLDnail</span>
                 </div>
                 <span className="text-xs text-[#D37E90]">›</span>
               </a>
