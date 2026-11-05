@@ -4,7 +4,7 @@ import Button from "../Components/ui/Button";
 import Card from "../Components/ui/Card";
 import SectionTitle from "../Components/ui/SectionTitle";
 
-import pressOnImg from "../assets/presson.png";
+import pressOnImg from "../assets/presson.jpg";
 
 function Home() {
   const features = [
