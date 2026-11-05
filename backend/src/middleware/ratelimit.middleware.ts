@@ -1,6 +1,6 @@
 import rateLimit from "express-rate-limit";
 
-// A held booking blocks its slot for 24 hours, so an unthrottled submit endpoint
+// A held booking blocks its slot for up to 3 days, so an unthrottled submit endpoint
 // lets one script tie up the whole calendar. These caps sit well above what a
 // real visitor does and well below what an abusive one needs.
 export const submitLimiter = rateLimit({

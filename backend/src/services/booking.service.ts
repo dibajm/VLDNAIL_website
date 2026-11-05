@@ -26,17 +26,22 @@ export function isBookableDate(date: string): boolean {
   return day > DateTime.now().setZone(env.businessTimezone).startOf("day");
 }
 
+const HOLD_DAYS = 3;
+
 export async function createHeldBooking(payload: BookingPayload) {
   await expireStaleBookings();
   if (!isBookableDate(payload.date)) {
     throw new Error("VALIDATION_ERROR: Appointments must be booked at least one day in advance.");
   }
   const appointmentStart = parseAppointmentStart(payload.date, payload.time);
+  // An unanswered request holds its slot for 3 days, but never past the
+  // appointment itself.
+  const holdExpiresAt = Math.min(Date.now() + HOLD_DAYS * 24 * 60 * 60 * 1000, new Date(appointmentStart).getTime());
   const { data, error } = await supabaseAdmin
     .from("bookings")
     .insert({
       status: "held",
-      hold_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      hold_expires_at: new Date(holdExpiresAt).toISOString(),
       appointment_start: appointmentStart,
       duration_minutes: durationForTier(payload.designTier),
       service_type: payload.serviceType,

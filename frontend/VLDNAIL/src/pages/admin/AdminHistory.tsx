@@ -115,7 +115,7 @@ export default function AdminHistory() {
                       <span className="rounded-full bg-[#F5DDE1] px-3 py-1 text-xs text-[#7c6269]">{statusLabel(status)}</span>
                     </div>
                     <p className="mt-1 text-sm text-[#D37E90]">{formatAppointment(booking.appointment_start)}</p>
-                    <p className="mt-3 text-sm text-[#5f4a50]">{booking.service} · Tier {booking.design_tier ?? "none"} · {booking.duration_minutes} minutes</p>
+                    <p className="mt-3 text-sm text-[#5f4a50]">{booking.service} · Tier {booking.design_tier ?? "none"} · {booking.duration_minutes / 60} {booking.duration_minutes === 60 ? "hour" : "hours"}</p>
                     <p className="mt-1 text-sm text-[#6e565d]">{booking.contact.email} · {booking.contact.phone || "No phone provided"}</p>
                   </div>
                   <div className="flex flex-wrap gap-3 self-start">
