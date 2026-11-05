@@ -58,6 +58,11 @@ function formatBlockedPeriod(startsAt: string, endsAt: string) {
   return `${day.format(start)}, ${time.format(start)} – ${day.format(end)}, ${time.format(end)}`;
 }
 
+// Inputs in the block-off form. Fixed height and no native styling, so date
+// boxes on iPhone line up with the dropdowns instead of shrinking or
+// spilling past the card.
+const fieldClass = "mt-1 block h-10 w-full min-w-0 rounded-md border border-[#F5DDE1] bg-white px-2 text-left text-sm font-normal normal-case tracking-normal text-[#2f2024]";
+
 // 8:00 AM to 8:00 PM in 15-minute steps, for blocking off part of a day.
 const blockTimeOptions = Array.from({ length: 49 }, (_, index) => {
   const minutes = 8 * 60 + index * 15;
@@ -93,7 +98,7 @@ export default function AdminDashboard() {
   const [blockedDraft, setBlockedDraft] = useState({ starts_at: "", ends_at: "", reason: "" });
   const [blockMode, setBlockMode] = useState<"hours" | "days">("hours");
   const [blockedDays, setBlockedDays] = useState({ from: "", to: "" });
-  const [blockedHours, setBlockedHours] = useState({ date: "", from: "", to: "" });
+  const [blockedHours, setBlockedHours] = useState({ startDate: "", startTime: "", endDate: "", endTime: "" });
   const [blockedBusy, setBlockedBusy] = useState(false);
 
   async function loadCatalog(token: string) {
@@ -246,8 +251,8 @@ export default function AdminDashboard() {
       endsAt = new Date(`${lastDay}T00:00`);
       endsAt.setDate(endsAt.getDate() + 1);
     } else {
-      startsAt = new Date(`${blockedHours.date}T${blockedHours.from}`);
-      endsAt = new Date(`${blockedHours.date}T${blockedHours.to}`);
+      startsAt = new Date(`${blockedHours.startDate}T${blockedHours.startTime}`);
+      endsAt = new Date(`${blockedHours.endDate || blockedHours.startDate}T${blockedHours.endTime}`);
     }
     if (endsAt <= startsAt) {
       setError(blockMode === "days" ? "The last day can't be before the first day." : "The end time must be after the start time.");
@@ -263,7 +268,7 @@ export default function AdminDashboard() {
       setBlockedPeriods((current) => [...current, period].sort((a, b) => a.starts_at.localeCompare(b.starts_at)));
       setBlockedDraft({ starts_at: "", ends_at: "", reason: "" });
       setBlockedDays({ from: "", to: "" });
-      setBlockedHours({ date: "", from: "", to: "" });
+      setBlockedHours({ startDate: "", startTime: "", endDate: "", endTime: "" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to block this time.");
     } finally {
@@ -443,18 +448,19 @@ export default function AdminDashboard() {
                   ))}
                 </div>
                 {blockMode === "days" ? (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-[#7c6269]">First day<input required type="date" value={blockedDays.from} onChange={(event) => setBlockedDays((current) => ({ ...current, from: event.target.value }))} className="mt-1 block w-full min-w-0 rounded-md border border-[#F5DDE1] bg-white px-2 py-2 text-sm font-normal normal-case tracking-normal text-[#2f2024]" /></label>
-                  <label className="text-xs font-semibold uppercase tracking-wider text-[#7c6269]">Last day <span className="font-normal normal-case tracking-normal">(optional)</span><input type="date" min={blockedDays.from || undefined} value={blockedDays.to} onChange={(event) => setBlockedDays((current) => ({ ...current, to: event.target.value }))} className="mt-1 block w-full min-w-0 rounded-md border border-[#F5DDE1] bg-white px-2 py-2 text-sm font-normal normal-case tracking-normal text-[#2f2024]" /></label>
+                <div className="grid grid-cols-2 items-end gap-3">
+                  <label className="min-w-0 text-xs font-semibold uppercase tracking-wider text-[#7c6269]">First day<input required type="date" value={blockedDays.from} onChange={(event) => setBlockedDays((current) => ({ ...current, from: event.target.value }))} className={`${fieldClass} appearance-none`} /></label>
+                  <label className="min-w-0 text-xs font-semibold uppercase tracking-wider text-[#7c6269]">Last day <span className="font-normal normal-case tracking-normal">(optional)</span><input type="date" min={blockedDays.from || undefined} value={blockedDays.to} onChange={(event) => setBlockedDays((current) => ({ ...current, to: event.target.value }))} className={`${fieldClass} appearance-none`} /></label>
                 </div>
                 ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  <label className="col-span-2 text-xs font-semibold uppercase tracking-wider text-[#7c6269]">Day<input required type="date" value={blockedHours.date} onChange={(event) => setBlockedHours((current) => ({ ...current, date: event.target.value }))} className="mt-1 block w-full min-w-0 rounded-md border border-[#F5DDE1] bg-white px-2 py-2 text-sm font-normal normal-case tracking-normal text-[#2f2024]" /></label>
-                  <label className="min-w-0 text-xs font-semibold uppercase tracking-wider text-[#7c6269]">From<select required value={blockedHours.from} onChange={(event) => setBlockedHours((current) => ({ ...current, from: event.target.value }))} className="mt-1 block w-full min-w-0 rounded-md border border-[#F5DDE1] bg-white px-2 py-2 text-sm font-normal normal-case tracking-normal text-[#2f2024]"><option value="" disabled>Select</option>{blockTimeOptions.slice(0, -1).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
-                  <label className="min-w-0 text-xs font-semibold uppercase tracking-wider text-[#7c6269]">To<select required value={blockedHours.to} onChange={(event) => setBlockedHours((current) => ({ ...current, to: event.target.value }))} className="mt-1 block w-full min-w-0 rounded-md border border-[#F5DDE1] bg-white px-2 py-2 text-sm font-normal normal-case tracking-normal text-[#2f2024]"><option value="" disabled>Select</option>{blockTimeOptions.slice(1).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+                <div className="grid grid-cols-2 items-end gap-3">
+                  <label className="min-w-0 text-xs font-semibold uppercase tracking-wider text-[#7c6269]">Start day<input required type="date" value={blockedHours.startDate} onChange={(event) => { const value = event.target.value; setBlockedHours((current) => ({ ...current, startDate: value, endDate: current.endDate && current.endDate >= value ? current.endDate : value })); }} className={`${fieldClass} appearance-none`} /></label>
+                  <label className="min-w-0 text-xs font-semibold uppercase tracking-wider text-[#7c6269]">Start time<select required value={blockedHours.startTime} onChange={(event) => setBlockedHours((current) => ({ ...current, startTime: event.target.value }))} className={fieldClass}><option value="" disabled>Select</option>{blockTimeOptions.slice(0, -1).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+                  <label className="min-w-0 text-xs font-semibold uppercase tracking-wider text-[#7c6269]">End day<input required type="date" min={blockedHours.startDate || undefined} value={blockedHours.endDate} onChange={(event) => setBlockedHours((current) => ({ ...current, endDate: event.target.value }))} className={`${fieldClass} appearance-none`} /></label>
+                  <label className="min-w-0 text-xs font-semibold uppercase tracking-wider text-[#7c6269]">End time<select required value={blockedHours.endTime} onChange={(event) => setBlockedHours((current) => ({ ...current, endTime: event.target.value }))} className={fieldClass}><option value="" disabled>Select</option>{blockTimeOptions.slice(1).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
                 </div>
                 )}
-                <label className="mt-3 block text-xs font-semibold uppercase tracking-wider text-[#7c6269]">Reason<input value={blockedDraft.reason} onChange={(event) => setBlockedDraft((current) => ({ ...current, reason: event.target.value }))} placeholder="Personal day, break, appointment…" className="mt-1 block w-full rounded-md border border-[#F5DDE1] bg-white px-3 py-2 text-sm font-normal normal-case tracking-normal text-[#2f2024]" /></label>
+                <label className="mt-3 block text-xs font-semibold uppercase tracking-wider text-[#7c6269]">Reason<input value={blockedDraft.reason} onChange={(event) => setBlockedDraft((current) => ({ ...current, reason: event.target.value }))} placeholder="Personal day, break, appointment…" className={fieldClass} /></label>
                 <Button type="submit" disabled={blockedBusy} className="mt-4">{blockedBusy ? "Blocking…" : "Block this time"}</Button>
               </form>
               {upcomingBlockedPeriods.length > 0 && <div className="rounded-2xl border border-[#F5DDE1] bg-white/80 p-5"><h3 className="mb-3 font-serif text-lg">Blocked periods</h3><div className="space-y-3">{upcomingBlockedPeriods.map((period) => <div key={period.id} className="flex items-start justify-between gap-3 text-sm"><div><p>{formatBlockedPeriod(period.starts_at, period.ends_at)}</p><p className="text-xs text-[#7c6269]">{period.reason || "Unavailable"}</p></div><button type="button" onClick={() => void deleteBlockedPeriod(period)} className="text-xs text-[#D37E90] hover:underline">Remove</button></div>)}</div></div>}
