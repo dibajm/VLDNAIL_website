@@ -3,6 +3,7 @@ import { env } from "../config/env.js";
 import { supabaseAdmin } from "./supabase.service.js";
 import type { BookingPayload } from "../types/booking.types.js";
 import { getAvailabilityWindow, listBusinessHours } from "./availability.service.js";
+import { notifyBookingExpired } from "./notification.service.js";
 
 export function parseAppointmentStart(date: string, time: string): string {
   const start = DateTime.fromFormat(`${date} ${time}`, "yyyy-MM-dd h:mm a", {
@@ -59,14 +60,20 @@ export async function createHeldBooking(payload: BookingPayload) {
   return data;
 }
 
+// Runs at the start of every booking read and write, so lapsed holds are
+// released (and their clients told) the next time anyone uses the site.
 export async function expireStaleBookings() {
-  const { error } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from("bookings")
     .update({ status: "expired" })
     .eq("status", "held")
-    .lte("hold_expires_at", new Date().toISOString());
+    .lte("hold_expires_at", new Date().toISOString())
+    .select();
 
   if (error) throw error;
+  for (const booking of data ?? []) {
+    notifyBookingExpired(booking).catch((err) => console.error("Failed to send booking-expired notification", err));
+  }
 }
 
 export async function listHeldBookings() {
@@ -210,7 +217,7 @@ export async function rescheduleBooking(id: string, date: string, time: string, 
 
   const { data: booking, error: findError } = await supabaseAdmin
     .from("bookings")
-    .select("status, hold_expires_at, duration_minutes")
+    .select("*")
     .eq("id", id)
     .maybeSingle();
   if (findError) throw findError;
@@ -239,15 +246,26 @@ export async function rescheduleBooking(id: string, date: string, time: string, 
     throw new Error("VALIDATION_ERROR: That time overlaps a blocked period. Remove the block first if you want to book it.");
   }
 
-  const { data, error } = await supabaseAdmin
+  const changes: Record<string, unknown> = { appointment_start: start.toUTC().toISO(), duration_minutes: duration };
+  // Remember what a pending client first asked for, so the confirmation can
+  // point out that the time changed.
+  if (booking.status === "held" && !booking.requested_start) changes.requested_start = booking.appointment_start;
+  const update = (values: Record<string, unknown>) => supabaseAdmin
     .from("bookings")
-    .update({ appointment_start: start.toUTC().toISO(), duration_minutes: duration })
+    .update(values)
     .eq("id", id)
     .in("status", ["held", "confirmed"])
     .select()
     .single();
+  let { data, error } = await update(changes);
+  // Until the requested_start column is added in Supabase, move the booking
+  // without it rather than failing.
+  if (error && "requested_start" in changes && /requested_start/.test(error.message)) {
+    delete changes.requested_start;
+    ({ data, error } = await update(changes));
+  }
   if (error) throw error;
-  return data;
+  return { booking: data, previousStart: booking.appointment_start as string, wasConfirmed: booking.status === "confirmed" };
 }
 
 export async function declineBooking(id: string) {

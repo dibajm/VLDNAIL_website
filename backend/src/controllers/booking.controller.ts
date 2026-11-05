@@ -11,7 +11,14 @@ import {
 	listHeldBookings,
 	rescheduleBooking,
 } from "../services/booking.service.js";
-import { notifyBookingDecision, notifyNewBooking } from "../services/notification.service.js";
+import {
+	notifyBookingCancelled,
+	notifyBookingConfirmed,
+	notifyBookingDeclined,
+	notifyBookingMoved,
+	notifyBookingReceived,
+	notifyNewBooking,
+} from "../services/notification.service.js";
 import { parseBookingPayload } from "../validators/booking.validator.js";
 
 function routeId(req: Request): string {
@@ -26,6 +33,7 @@ export async function createBooking(req: Request, res: Response) {
 	const payload = parseBookingPayload(req.body);
 	const booking = await createHeldBooking(payload);
 	notifyNewBooking(booking).catch((error) => console.error("Failed to send new-booking notification", error));
+	notifyBookingReceived(booking).catch((error) => console.error("Failed to send booking-received notification", error));
 	res.status(201).json({ booking });
 }
 
@@ -60,7 +68,7 @@ export async function confirmBooking(req: Request, res: Response) {
 	}
 
 	const booking = await acceptBooking(routeId(req), durationMinutes);
-	notifyBookingDecision(booking, true).catch((error) => console.error("Failed to send booking-accepted notification", error));
+	notifyBookingConfirmed(booking).catch((error) => console.error("Failed to send booking-accepted notification", error));
 	res.json({ booking });
 }
 
@@ -74,18 +82,23 @@ export async function moveBooking(req: Request, res: Response) {
 	if (durationMinutes !== undefined && (!Number.isInteger(durationMinutes) || durationMinutes < 30 || durationMinutes > 12 * 60)) {
 		throw new Error("VALIDATION_ERROR: durationMinutes must be between 30 and 720 minutes");
 	}
-	res.json({ booking: await rescheduleBooking(routeId(req), date, time, durationMinutes) });
+	const { booking, previousStart, wasConfirmed } = await rescheduleBooking(routeId(req), date, time, durationMinutes);
+	// Pending clients hear about the new time in their confirmation instead.
+	if (wasConfirmed) {
+		notifyBookingMoved(booking, previousStart).catch((error) => console.error("Failed to send booking-moved notification", error));
+	}
+	res.json({ booking });
 }
 
 export async function rejectBooking(req: Request, res: Response) {
 	const booking = await declineBooking(routeId(req));
-	notifyBookingDecision(booking, false).catch((error) => console.error("Failed to send booking-declined notification", error));
+	notifyBookingDeclined(booking).catch((error) => console.error("Failed to send booking-declined notification", error));
 	res.json({ booking });
 }
 
 export async function cancelConfirmedBooking(req: Request, res: Response) {
 	const booking = await cancelBooking(routeId(req));
-	notifyBookingDecision(booking, false).catch((error) => console.error("Failed to send booking-cancelled notification", error));
+	notifyBookingCancelled(booking).catch((error) => console.error("Failed to send booking-cancelled notification", error));
 	res.json({ booking });
 }
 

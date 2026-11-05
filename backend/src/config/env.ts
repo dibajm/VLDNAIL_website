@@ -28,6 +28,8 @@ export const env = {
   supabaseServiceRoleKey: requiredEnv("SUPABASE_SERVICE_ROLE_KEY"),
   resendApiKey: process.env.RESEND_API_KEY,
   notificationFromEmail: process.env.NOTIFICATION_FROM_EMAIL ?? "bookings@example.com",
+  // Public site address used in links inside emails.
+  siteUrl: (process.env.FRONTEND_URL ?? "https://vldnail.ca").replace(/\/$/, ""),
 };
 
 export function isAdminEmail(email: string | undefined | null): boolean {
