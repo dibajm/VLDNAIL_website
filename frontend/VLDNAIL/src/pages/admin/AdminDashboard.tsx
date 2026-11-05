@@ -37,6 +37,26 @@ function formatAppointment(value: string) {
   }).format(new Date(value));
 }
 
+// "Tuesday, Sep 2 · 10:00 AM – 1:00 PM", repeating the date only when the
+// block runs past midnight.
+function formatBlockedPeriod(startsAt: string, endsAt: string) {
+  const zone = "America/Edmonton";
+  const day = new Intl.DateTimeFormat("en-US", { weekday: "long", month: "short", day: "numeric", timeZone: zone });
+  const time = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: zone });
+  const start = new Date(startsAt);
+  const end = new Date(endsAt);
+  if (time.format(start) === "12:00 AM" && time.format(end) === "12:00 AM") {
+    const lastDay = new Date(end.getTime() - 1);
+    return day.format(start) === day.format(lastDay)
+      ? `${day.format(start)} · All day`
+      : `${day.format(start)} – ${day.format(lastDay)} · All day`;
+  }
+  if (day.format(start) === day.format(end)) {
+    return `${day.format(start)} · ${time.format(start)} – ${time.format(end)}`;
+  }
+  return `${day.format(start)}, ${time.format(start)} – ${day.format(end)}, ${time.format(end)}`;
+}
+
 const timeOptions = Array.from({ length: 34 }, (_, index) => {
   const optionIndex = index + 15;
   const hour = Math.floor(optionIndex / 2);
@@ -62,6 +82,8 @@ export default function AdminDashboard() {
   const [hoursSavedDay, setHoursSavedDay] = useState<number | null>(null);
   const [hoursErrorDay, setHoursErrorDay] = useState<number | null>(null);
   const [blockedDraft, setBlockedDraft] = useState({ starts_at: "", ends_at: "", reason: "" });
+  const [blockMode, setBlockMode] = useState<"hours" | "days">("hours");
+  const [blockedDays, setBlockedDays] = useState({ from: "", to: "" });
   const [blockedBusy, setBlockedBusy] = useState(false);
 
   async function loadCatalog(token: string) {
@@ -204,15 +226,33 @@ export default function AdminDashboard() {
     const { data } = await getSupabaseClient().auth.getSession();
     const token = data.session?.access_token;
     if (!token) return navigate("/studio/login");
+    // A full-day block runs from midnight on the first day to midnight after
+    // the last day, so every opening hour in between is covered.
+    let startsAt: Date;
+    let endsAt: Date;
+    if (blockMode === "days") {
+      const lastDay = blockedDays.to || blockedDays.from;
+      startsAt = new Date(`${blockedDays.from}T00:00`);
+      endsAt = new Date(`${lastDay}T00:00`);
+      endsAt.setDate(endsAt.getDate() + 1);
+    } else {
+      startsAt = new Date(blockedDraft.starts_at);
+      endsAt = new Date(blockedDraft.ends_at);
+    }
+    if (endsAt <= startsAt) {
+      setError(blockMode === "days" ? "The last day can't be before the first day." : "The end time must be after the start time.");
+      return;
+    }
     setBlockedBusy(true);
     try {
       const period = await addBlockedPeriod({
-        starts_at: new Date(blockedDraft.starts_at).toISOString(),
-        ends_at: new Date(blockedDraft.ends_at).toISOString(),
+        starts_at: startsAt.toISOString(),
+        ends_at: endsAt.toISOString(),
         reason: blockedDraft.reason,
       }, token);
       setBlockedPeriods((current) => [...current, period].sort((a, b) => a.starts_at.localeCompare(b.starts_at)));
       setBlockedDraft({ starts_at: "", ends_at: "", reason: "" });
+      setBlockedDays({ from: "", to: "" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to block this time.");
     } finally {
@@ -240,6 +280,10 @@ export default function AdminDashboard() {
     await getSupabaseClient().auth.signOut();
     navigate("/studio/login");
   }
+
+  // Blocks that have already ended stay in the database but are hidden here.
+  const now = Date.now();
+  const upcomingBlockedPeriods = blockedPeriods.filter((period) => new Date(period.ends_at).getTime() > now);
 
   return (
     <main className="min-h-screen bg-[#FAEDEF] text-[#2f2024]">
@@ -370,14 +414,33 @@ export default function AdminDashboard() {
             <div className="space-y-5">
               <form onSubmit={(event) => void saveBlockedPeriod(event)} className="rounded-2xl border border-[#F5DDE1] bg-white/80 p-5">
                 <h3 className="mb-4 font-serif text-lg">Block off time</h3>
+                <div className="mb-4 inline-flex rounded-full border border-[#F5DDE1] bg-white/60 p-1">
+                  {(["hours", "days"] as const).map((mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => setBlockMode(mode)}
+                      className={`rounded-full px-4 py-1.5 text-xs font-medium transition ${blockMode === mode ? "bg-[#D37E90] text-white shadow-sm" : "text-[#D37E90] hover:bg-[#F5DDE1]"}`}
+                    >
+                      {mode === "hours" ? "Hours" : "Full day"}
+                    </button>
+                  ))}
+                </div>
+                {blockMode === "days" ? (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-[#7c6269]">First day<input required type="date" value={blockedDays.from} onChange={(event) => setBlockedDays((current) => ({ ...current, from: event.target.value }))} className="mt-1 block w-full rounded-md border border-[#F5DDE1] bg-white px-2 py-2 text-sm font-normal normal-case tracking-normal text-[#2f2024]" /></label>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-[#7c6269]">Last day <span className="font-normal normal-case tracking-normal">(optional)</span><input type="date" min={blockedDays.from || undefined} value={blockedDays.to} onChange={(event) => setBlockedDays((current) => ({ ...current, to: event.target.value }))} className="mt-1 block w-full rounded-md border border-[#F5DDE1] bg-white px-2 py-2 text-sm font-normal normal-case tracking-normal text-[#2f2024]" /></label>
+                </div>
+                ) : (
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label className="text-xs font-semibold uppercase tracking-wider text-[#7c6269]">Starts<input required type="datetime-local" value={blockedDraft.starts_at} onChange={(event) => setBlockedDraft((current) => ({ ...current, starts_at: event.target.value }))} className="mt-1 block w-full rounded-md border border-[#F5DDE1] bg-white px-2 py-2 text-sm font-normal normal-case tracking-normal text-[#2f2024]" /></label>
                   <label className="text-xs font-semibold uppercase tracking-wider text-[#7c6269]">Ends<input required type="datetime-local" value={blockedDraft.ends_at} onChange={(event) => setBlockedDraft((current) => ({ ...current, ends_at: event.target.value }))} className="mt-1 block w-full rounded-md border border-[#F5DDE1] bg-white px-2 py-2 text-sm font-normal normal-case tracking-normal text-[#2f2024]" /></label>
                 </div>
+                )}
                 <label className="mt-3 block text-xs font-semibold uppercase tracking-wider text-[#7c6269]">Reason<input value={blockedDraft.reason} onChange={(event) => setBlockedDraft((current) => ({ ...current, reason: event.target.value }))} placeholder="Personal day, break, appointment…" className="mt-1 block w-full rounded-md border border-[#F5DDE1] bg-white px-3 py-2 text-sm font-normal normal-case tracking-normal text-[#2f2024]" /></label>
                 <Button type="submit" disabled={blockedBusy} className="mt-4">{blockedBusy ? "Blocking…" : "Block this time"}</Button>
               </form>
-              {blockedPeriods.length > 0 && <div className="rounded-2xl border border-[#F5DDE1] bg-white/80 p-5"><h3 className="mb-3 font-serif text-lg">Blocked periods</h3><div className="space-y-3">{blockedPeriods.map((period) => <div key={period.id} className="flex items-start justify-between gap-3 text-sm"><div><p>{new Date(period.starts_at).toLocaleString()} – {new Date(period.ends_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</p><p className="text-xs text-[#7c6269]">{period.reason || "Unavailable"}</p></div><button type="button" onClick={() => void deleteBlockedPeriod(period)} className="text-xs text-[#D37E90] hover:underline">Remove</button></div>)}</div></div>}
+              {upcomingBlockedPeriods.length > 0 && <div className="rounded-2xl border border-[#F5DDE1] bg-white/80 p-5"><h3 className="mb-3 font-serif text-lg">Blocked periods</h3><div className="space-y-3">{upcomingBlockedPeriods.map((period) => <div key={period.id} className="flex items-start justify-between gap-3 text-sm"><div><p>{formatBlockedPeriod(period.starts_at, period.ends_at)}</p><p className="text-xs text-[#7c6269]">{period.reason || "Unavailable"}</p></div><button type="button" onClick={() => void deleteBlockedPeriod(period)} className="text-xs text-[#D37E90] hover:underline">Remove</button></div>)}</div></div>}
             </div>
           </div>
         </section>
