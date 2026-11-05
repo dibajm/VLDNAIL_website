@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Button from "../../Components/ui/Button";
 import { acceptBooking, addBlockedPeriod, declineBooking, getAvailabilitySettings, getCatalog, getPendingBookings, removeBlockedPeriod, type BlockedPeriod, type BusinessHour, type CatalogItem, type PendingBooking, updateBusinessHour, updateCatalogItem } from "../../services/adminApi";
 import { getSupabaseClient } from "../../services/supabase";
+import RescheduleControl from "./RescheduleControl";
 
 const mockAdminEnabled = import.meta.env.VITE_MOCK_ADMIN === "true";
 
@@ -335,6 +336,11 @@ export default function AdminDashboard() {
                       {[120, 150, 180, 210, 240].map((minutes) => <option key={minutes} value={minutes}>{minutes / 60} hours</option>)}
                     </select>
                   </label>
+                  <RescheduleControl
+                    booking={booking}
+                    durationMinutes={durations[booking.id] ?? defaultDuration(booking.design_tier)}
+                    onSaved={(updated) => setBookings((current) => current.map((item) => item.id === updated.id ? { ...item, ...updated } : item))}
+                  />
                   <div className="flex gap-2">
                     <Button onClick={() => void handleDecision(booking, true)} disabled={busyId === booking.id}>
                       {busyId === booking.id ? "Saving…" : "Accept & Block"}

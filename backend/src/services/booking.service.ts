@@ -200,6 +200,56 @@ export async function acceptBooking(id: string, durationMinutes: number) {
   return data;
 }
 
+// The studio can move a pending or confirmed booking to any time between
+// 8 AM and 8 PM, outside the regular opening hours if needed. Overlaps with
+// other held or confirmed bookings are refused by the database itself.
+export async function rescheduleBooking(id: string, date: string, time: string, durationMinutes?: number) {
+  const start = DateTime.fromFormat(`${date} ${time}`, "yyyy-MM-dd HH:mm", { zone: env.businessTimezone });
+  if (!start.isValid) throw new Error("VALIDATION_ERROR: Invalid date or time");
+  if (start <= DateTime.now()) throw new Error("VALIDATION_ERROR: The new time must be in the future.");
+
+  const { data: booking, error: findError } = await supabaseAdmin
+    .from("bookings")
+    .select("status, hold_expires_at, duration_minutes")
+    .eq("id", id)
+    .maybeSingle();
+  if (findError) throw findError;
+  if (!booking) throw new Error("VALIDATION_ERROR: Booking not found.");
+  const isActiveHold = booking.status === "held" && DateTime.fromISO(booking.hold_expires_at) > DateTime.now();
+  if (!isActiveHold && booking.status !== "confirmed") {
+    throw new Error("VALIDATION_ERROR: Only pending or confirmed bookings can be moved.");
+  }
+
+  const duration = durationMinutes ?? booking.duration_minutes;
+  const end = start.plus({ minutes: duration });
+  const earliest = start.set({ hour: 8, minute: 0, second: 0, millisecond: 0 });
+  const latest = start.set({ hour: 20, minute: 0, second: 0, millisecond: 0 });
+  if (start < earliest || end > latest) {
+    throw new Error("VALIDATION_ERROR: The appointment has to start at 8 AM or later and finish by 8 PM.");
+  }
+
+  const { data: blocked, error: blockedError } = await supabaseAdmin
+    .from("blocked_periods")
+    .select("id")
+    .lt("starts_at", end.toUTC().toISO())
+    .gt("ends_at", start.toUTC().toISO())
+    .limit(1);
+  if (blockedError) throw blockedError;
+  if (blocked && blocked.length > 0) {
+    throw new Error("VALIDATION_ERROR: That time overlaps a blocked period. Remove the block first if you want to book it.");
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("bookings")
+    .update({ appointment_start: start.toUTC().toISO(), duration_minutes: duration })
+    .eq("id", id)
+    .in("status", ["held", "confirmed"])
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 export async function declineBooking(id: string) {
   const { data, error } = await supabaseAdmin
     .from("bookings")

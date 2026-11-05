@@ -7,6 +7,7 @@ import {
 	getBookingHistory,
 	getClosedDays,
 	getHeldBookings,
+	moveBooking,
 	removeBookingHistory,
 	rejectBooking,
 } from "../controllers/booking.controller.js";
@@ -21,6 +22,7 @@ bookingRouter.get("/closed-days", readLimiter, getClosedDays);
 bookingRouter.get("/pending", requireAdmin, getHeldBookings);
 bookingRouter.get("/history", requireAdmin, getBookingHistory);
 bookingRouter.post("/:id/accept", requireAdmin, confirmBooking);
+bookingRouter.post("/:id/reschedule", requireAdmin, moveBooking);
 bookingRouter.post("/:id/decline", requireAdmin, rejectBooking);
 bookingRouter.post("/:id/cancel", requireAdmin, cancelConfirmedBooking);
 bookingRouter.delete("/:id/history", requireAdmin, removeBookingHistory);

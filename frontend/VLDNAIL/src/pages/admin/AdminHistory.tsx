@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { cancelBooking, deleteBookingHistory, getBookingHistory, type PendingBooking } from "../../services/adminApi";
 import { getSupabaseClient } from "../../services/supabase";
+import RescheduleControl from "./RescheduleControl";
 
 function formatAppointment(value: string) {
   return new Intl.DateTimeFormat("en-CA", {
@@ -118,9 +119,17 @@ export default function AdminHistory() {
                     <p className="mt-3 text-sm text-[#5f4a50]">{booking.service} · Tier {booking.design_tier ?? "none"} · {booking.duration_minutes / 60} {booking.duration_minutes === 60 ? "hour" : "hours"}</p>
                     <p className="mt-1 text-sm text-[#6e565d]">{booking.contact.email} · {booking.contact.phone || "No phone provided"}</p>
                   </div>
-                  <div className="flex flex-wrap gap-3 self-start">
+                  <div className="flex flex-col gap-3 self-start">
+                    {status === "confirmed" && (
+                      <RescheduleControl
+                        booking={booking}
+                        onSaved={(updated) => setBookings((current) => current.map((entry) => entry.id === updated.id ? { ...entry, ...updated } : entry))}
+                      />
+                    )}
+                    <div className="flex flex-wrap gap-3">
                     {status === "confirmed" && <button type="button" onClick={() => void handleCancel(booking)} disabled={busyId === booking.id} className="rounded-md border border-[#D37E90] px-4 py-2 text-sm text-[#D37E90] hover:bg-[#F5DDE1] disabled:opacity-50">{busyId === booking.id ? "Cancelling…" : "Cancel appointment"}</button>}
                     {status !== "confirmed" && <button type="button" onClick={() => void handleDelete(booking)} disabled={busyId === booking.id} className="rounded-md border border-red-200 px-4 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50">{busyId === booking.id ? "Deleting…" : "Delete record"}</button>}
+                    </div>
                   </div>
                 </div>
               </article>

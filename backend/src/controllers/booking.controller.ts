@@ -9,6 +9,7 @@ import {
 	listClosedDays,
 	listBookingHistory,
 	listHeldBookings,
+	rescheduleBooking,
 } from "../services/booking.service.js";
 import { notifyBookingDecision, notifyNewBooking } from "../services/notification.service.js";
 import { parseBookingPayload } from "../validators/booking.validator.js";
@@ -61,6 +62,19 @@ export async function confirmBooking(req: Request, res: Response) {
 	const booking = await acceptBooking(routeId(req), durationMinutes);
 	notifyBookingDecision(booking, true).catch((error) => console.error("Failed to send booking-accepted notification", error));
 	res.json({ booking });
+}
+
+export async function moveBooking(req: Request, res: Response) {
+	const date = typeof req.body.date === "string" ? req.body.date : "";
+	const time = typeof req.body.time === "string" ? req.body.time : "";
+	if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time)) {
+		throw new Error("VALIDATION_ERROR: Invalid date or time");
+	}
+	const durationMinutes = req.body.durationMinutes === undefined ? undefined : Number(req.body.durationMinutes);
+	if (durationMinutes !== undefined && (!Number.isInteger(durationMinutes) || durationMinutes < 30 || durationMinutes > 12 * 60)) {
+		throw new Error("VALIDATION_ERROR: durationMinutes must be between 30 and 720 minutes");
+	}
+	res.json({ booking: await rescheduleBooking(routeId(req), date, time, durationMinutes) });
 }
 
 export async function rejectBooking(req: Request, res: Response) {

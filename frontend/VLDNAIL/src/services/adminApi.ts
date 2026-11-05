@@ -88,6 +88,14 @@ export async function acceptBooking(id: string, durationMinutes: number, token: 
   });
 }
 
+export async function rescheduleBooking(id: string, values: { date: string; time: string; durationMinutes?: number }, token: string) {
+  const result = await request<{ booking: PendingBooking }>(`/api/booking/${id}/reschedule`, token, {
+    method: "POST",
+    body: JSON.stringify(values),
+  });
+  return result.booking;
+}
+
 export async function declineBooking(id: string, token: string) {
   return request(`/api/booking/${id}/decline`, token, { method: "POST" });
 }
